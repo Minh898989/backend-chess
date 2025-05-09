@@ -21,6 +21,16 @@ app.use(express.json());
 // Đăng ký các route của API
 app.use('/api/auth', authRoutes);  // Đảm bảo có đúng các đường dẫn
 
+// Middleware xử lý lỗi
+app.use((err, req, res, next) => {
+  console.error('Error details:', err);  // In lỗi chi tiết ra console
+  res.status(500).json({
+    error: 'Something went wrong!',
+    message: err.message || 'Internal Server Error',
+    details: err.stack,  // Trả về stack trace chi tiết cho debug
+  });
+});
+
 // Khởi động server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
