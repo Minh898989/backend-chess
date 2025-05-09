@@ -1,9 +1,15 @@
 const express = require('express');
-const app = express();
-const authRoutes = require('./src/routes/authRoutes');
 const cors = require('cors');
+const authRoutes = require('./src/routes/authRoutes');
 
-app.use(cors());
+const app = express();
+
+// Configure CORS to allow only your frontend origin
+app.use(cors({
+  origin: 'https://frontend-chess-nine.vercel.app',
+  credentials: true, // if you're using cookies or authorization headers
+}));
+
 app.use(express.json());
 app.use('/api/auth', authRoutes);
 
