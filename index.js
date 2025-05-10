@@ -7,27 +7,30 @@ const app = express();
 // Cấu hình CORS để chỉ cho phép frontend từ origin cụ thể
 const corsOptions = {
   origin: 'https://frontend-chess-nine.vercel.app', // Địa chỉ frontend của bạn
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Các phương thức HTTP được phép
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Các phương thức HTTP được phép
   allowedHeaders: ['Content-Type', 'Authorization'], // Các headers được phép
-  credentials: true, // Nếu bạn sử dụng cookies hoặc headers xác thực
+  credentials: true, // Cho phép gửi cookie hoặc thông tin xác thực
 };
 
 // Sử dụng middleware CORS cho toàn bộ ứng dụng
 app.use(cors(corsOptions));
 
+// Xử lý các yêu cầu preflight (OPTIONS)
+app.options('*', cors(corsOptions));
+
 // Cấu hình body parser để xử lý JSON trong request
 app.use(express.json());
 
 // Đăng ký các route của API
-app.use('/api/auth', authRoutes);  // Đảm bảo có đúng các đường dẫn
+app.use('/api/auth', authRoutes);
 
 // Middleware xử lý lỗi
 app.use((err, req, res, next) => {
-  console.error('Error details:', err);  // In lỗi chi tiết ra console
+  console.error('Error details:', err);
   res.status(500).json({
     error: 'Something went wrong!',
     message: err.message || 'Internal Server Error',
-    details: err.stack,  // Trả về stack trace chi tiết cho debug
+    details: err.stack,
   });
 });
 
