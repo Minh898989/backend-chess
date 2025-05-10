@@ -2,8 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./src/routes/authRoutes');
 const gameRoutes = require('./src/routes/statsRoutes');
-const rewardsRoutes = require("./src/routes/rewardsRoutes");
-const missionRoutes = require("./src/routes/missionRoutes");
 
 const app = express();
 
@@ -23,8 +21,6 @@ app.use(express.json());
 // Đăng ký routes
 app.use('/api/auth', authRoutes); 
 app.use('/api/stats', gameRoutes);
-app.use("/api/rewards", rewardsRoutes);
-app.use("/api/missions", missionRoutes);
 
 
 // Middleware xử lý lỗi
