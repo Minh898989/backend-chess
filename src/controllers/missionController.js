@@ -1,32 +1,43 @@
-const missionModel = require('../models/missionModel');
-const userStatsModel = require('../models/userStatsModel');
-const userMissionModel = require('../models/userMissionModel');
+const model = require('../models/missionModel');
 
-exports.claimAvailableMissions = async (req, res) => {
-  const { userid } = req.params;
-  const stats = await userStatsModel.getStatsByUserId(userid);
-  const missions = await missionModel.getAllMissions();
+const missionConditions = {
+  1: (stats) => true,
+  2: (stats) => stats.games_played >= 5,
+  3: (stats) => stats.games_won >= 3,
+  4: (stats) => stats.total_minutes >= 10,
+  5: (stats) => stats.total_captured >= 10,
+};
 
-  const claimable = [];
+exports.getMissions = async (req, res) => {
+  const userId = req.params.userid;
+  const missions = await model.getAllMissions();
+  const stats = await model.getUserStats(userId);
 
-  for (const mission of missions) {
-    const alreadyClaimed = await userMissionModel.isMissionClaimed(userid, mission.id);
-    if (alreadyClaimed) continue;
+  const result = await Promise.all(missions.map(async (m) => {
+    const isEligible = missionConditions[m.id] ? missionConditions[m.id](stats) : false;
+    const claimed = await model.checkClaimed(userId, m.id);
+    return {
+      ...m,
+      eligible: isEligible,
+      claimed
+    };
+  }));
 
-    let eligible = false;
-    switch (mission.id) {
-      case 1: eligible = true; break; // Đăng nhập mỗi ngày
-      case 2: eligible = stats.games_played >= 5; break;
-      case 3: eligible = stats.games_won >= 3; break;
-      case 4: eligible = stats.total_minutes >= 10; break;
-      case 5: eligible = stats.total_captured >= 10; break;
-    }
+  res.json(result);
+};
 
-    if (eligible) {
-      await userMissionModel.claimMission(userid, mission.id);
-      claimable.push({ missionId: mission.id, reward: mission.reward_points });
-    }
-  }
+exports.claimMission = async (req, res) => {
+  const { userid, missionId } = req.body;
+  const missions = await model.getAllMissions();
+  const mission = missions.find(m => m.id === missionId);
+  const stats = await model.getUserStats(userid);
 
-  res.json({ claimed: claimable });
+  const isEligible = missionConditions[missionId](stats);
+  const alreadyClaimed = await model.checkClaimed(userid, missionId);
+
+  if (!isEligible) return res.status(400).json({ message: 'Chưa đủ điều kiện nhận thưởng' });
+  if (alreadyClaimed) return res.status(400).json({ message: 'Đã nhận thưởng rồi' });
+
+  await model.claimReward(userid, missionId, mission.reward_points);
+  res.json({ message: 'Nhận thưởng thành công!' });
 };
