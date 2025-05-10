@@ -6,7 +6,7 @@ const app = express();
 
 // CORS cấu hình
 const corsOptions = {
-  origin: 'https://frontend-chess-nine.vercel.app',
+  origin: 'https://frontend-chess-seven.vercel.app/',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
