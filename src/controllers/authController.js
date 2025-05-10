@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const userModel = require('../models/userModel');
 
-// Đăng ký người dùng
 const register = (req, res) => {
   const { userid, password } = req.body;
 
@@ -11,9 +10,9 @@ const register = (req, res) => {
 
   userModel.findUserByUserId(userid, (err, results) => {
     if (err) {
-  console.error('Database error:', err);  // In ra lỗi thật
-  return res.status(500).json({ message: 'Lỗi truy vấn cơ sở dữ liệu', error: err.message });
-   }
+      console.error('Database error:', err);
+      return res.status(500).json({ message: 'Lỗi truy vấn cơ sở dữ liệu', error: err.message });
+    }
 
     if (results.length > 0) {
       return res.status(400).json({ message: 'UserID đã tồn tại' });
@@ -28,7 +27,6 @@ const register = (req, res) => {
   });
 };
 
-// Đăng nhập người dùng
 const login = (req, res) => {
   const { userid, password } = req.body;
 
