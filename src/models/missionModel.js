@@ -9,13 +9,14 @@ const getUserStats = async (userId) => {
   const res = await db.query('SELECT * FROM user_stats WHERE userid = $1', [userId]);
   return res.rows[0];
 };
+
 const getTotalClaimedPoints = async (userId) => {
   const res = await db.query(`
     SELECT COALESCE(points, 0) AS total
     FROM users
     WHERE userid = $1
   `, [userId]);
-  return res.rows.length ? res.rows[0].total : 0;
+  return res.rows[0]?.total || 0;
 };
 
 const checkClaimed = async (userId, missionId) => {
@@ -33,13 +34,16 @@ const claimReward = async (userId, missionId, rewardPoints) => {
     'INSERT INTO user_missions(userid, mission_id, claimed_at, claimed_date) VALUES ($1, $2, NOW(), $3)',
     [userId, missionId, today]
   );
-  await db.query('UPDATE users SET points = points + $1 WHERE userid = $2', [rewardPoints, userId]);
+  await db.query(
+    'UPDATE users SET points = points + $1 WHERE userid = $2',
+    [rewardPoints, userId]
+  );
 };
 
 module.exports = {
   getAllMissions,
   getUserStats,
+  getTotalClaimedPoints,
   checkClaimed,
   claimReward,
-  getTotalClaimedPoints,
 };
