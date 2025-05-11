@@ -28,7 +28,12 @@ exports.getMissions = async (req, res) => {
   const missions = await model.getAllMissions();
   const stats = await model.getUserStats(userId);
   const totalPoints = await model.getTotalClaimedPoints(userId);
-
+  let level = 1;
+  if (totalPoints >= 100) {
+    level = 3;
+  } else if (totalPoints >= 30) {
+    level = 2;
+  }
   const result = await Promise.all(missions.map(async (m) => {
     const isEligible = missionConditions[m.id] ? missionConditions[m.id](stats) : false;
     const claimed = await model.checkClaimed(userId, m.id);
@@ -39,7 +44,7 @@ exports.getMissions = async (req, res) => {
     };
   }));
 
-  res.json({ missions: result, totalPoints });
+  res.json({ missions: result, totalPoints,level });
 };
 
 exports.claimMission = async (req, res) => {
