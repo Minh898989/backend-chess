@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/missionController');
+const { claimMissionReward } = require('../controllers/missionController');
 
-router.get('/:userid', controller.getMissions);
-router.post('/claim', controller.claimMission);
+router.post('/missions/claim', claimMissionReward);
 
 module.exports = router;

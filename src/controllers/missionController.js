@@ -1,77 +1,66 @@
-const model = require('../models/missionModel');
-const db = require('../config/db');
+const MissionModel = require('../models/missionModel');
 
-const missionConditions = {
-  1: (stats) => true,
-  2: (stats) => stats.games_played >= 5,
-  3: (stats) => stats.games_won >= 3,
-  4: (stats) => stats.total_minutes >= 10,
-  5: (stats) => stats.total_captured >= 10,
-};
+const LEVEL_STEP = 100;
 
-const resetDailyMissionsIfNeeded = async (userId) => {
-  const res = await db.query('SELECT last_reset FROM users WHERE userid = $1', [userId]);
-  const lastReset = res.rows[0]?.last_reset;
-  const today = new Date().toISOString().split('T')[0];
+function calculateLevel(points) {
+  return Math.floor(points / LEVEL_STEP) + 1;
+}
 
-  if (lastReset !== today) {
-    await db.query('DELETE FROM user_missions WHERE userid = $1', [userId]);
-    await db.query('UPDATE users SET last_reset = $1 WHERE userid = $2', [today, userId]);
-  }
-};
-
-exports.getMissions = async (req, res) => {
-  try {
-    const userId = req.params.userid;
-    await resetDailyMissionsIfNeeded(userId);
-
-    const missions = await model.getAllMissions();
-    const stats = await model.getUserStats(userId);
-    const totalPoints = await model.getTotalClaimedPoints(userId);
-
-    const level = totalPoints >= 100 ? 3 : totalPoints >= 30 ? 2 : 1;
-
-    const results = await Promise.all(missions.map(async (m) => {
-      const eligible = missionConditions[m.id]?.(stats) || false;
-      const claimed = await model.checkClaimed(userId, m.id);
-      return { ...m, eligible, claimed };
-    }));
-
-    res.json({ missions: results, totalPoints, level });
-  } catch (err) {
-    res.status(500).json({ message: 'Lỗi máy chủ' });
-  }
-};
-
-exports.claimMission = async (req, res) => {
+async function claimMissionReward(req, res) {
   try {
     const { userid, missionId } = req.body;
+    const missionList = await MissionModel.getAllMissions();
+    const mission = missionList.find(m => m.id === missionId);
 
-    const missions = await model.getAllMissions();
-    const mission = missions.find(m => m.id === missionId);
-    if (!mission) return res.status(400).json({ message: 'Nhiệm vụ không tồn tại' });
+    if (!mission) return res.status(404).json({ error: 'Mission not found.' });
 
-    const stats = await model.getUserStats(userid);
-    const eligible = missionConditions[missionId]?.(stats) || false;
-    if (!eligible) return res.status(400).json({ message: 'Chưa đủ điều kiện nhận thưởng' });
+    // Check if already claimed today
+    const alreadyClaimed = await MissionModel.hasReceivedToday(userid, missionId);
+    if (alreadyClaimed) {
+      return res.status(400).json({ error: 'Reward already claimed today for this mission.' });
+    }
 
-    const claimed = await model.checkClaimed(userid, missionId);
-    if (claimed) return res.status(400).json({ message: 'Bạn đã nhận thưởng nhiệm vụ này hôm nay rồi' });
+    // Check if user meets mission condition
+    const stats = await MissionModel.getUserStats(userid);
+    if (!stats) return res.status(404).json({ error: 'User stats not found.' });
 
-    await model.claimReward(userid, missionId, mission.reward_points);
+    let isCompleted = false;
 
-// Gọi lại để cập nhật totalPoints và level sau khi nhận
-const totalPoints = await model.getTotalClaimedPoints(userid);
-const level = totalPoints >= 100 ? 3 : totalPoints >= 30 ? 2 : 1;
+    switch (missionId) {
+      case 1:
+        isCompleted = true; // Daily login
+        break;
+      case 2:
+        isCompleted = stats.games_played >= 5;
+        break;
+      case 3:
+        isCompleted = stats.games_won >= 3;
+        break;
+      case 4:
+        isCompleted = stats.total_minutes >= 10;
+        break;
+      case 5:
+        isCompleted = stats.total_captured >= 10;
+        break;
+    }
 
-res.json({
-  message: 'Nhận thưởng thành công!',
-  totalPoints,
-  level,
-  updatedMission: mission
-});
+    if (!isCompleted) {
+      return res.status(400).json({ error: 'Mission not yet completed.' });
+    }
 
+    // Reward
+    await MissionModel.recordMissionCompletion(userid, missionId);
+    await MissionModel.addUserPoints(userid, mission.reward_points);
+
+    const totalPoints = await MissionModel.getUserTotalPoints(userid);
+    const newLevel = calculateLevel(totalPoints);
+    await MissionModel.updateUserLevel(userid, newLevel);
+
+    res.json({ message: 'Reward claimed successfully.', totalPoints, level: newLevel });
   } catch (err) {
-    res.status(400).json({ message: err.message || 'Lỗi khi nhận thưởng' });
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error.' });
   }
-};
+}
+
+module.exports = { claimMissionReward };
