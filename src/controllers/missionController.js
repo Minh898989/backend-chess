@@ -7,6 +7,21 @@ const missionConditions = {
   4: (stats) => stats.total_minutes >= 10,
   5: (stats) => stats.total_captured >= 10,
 };
+const resetDailyMissionsIfNeeded = async (userId) => {
+  await resetDailyMissionsIfNeeded(userId)
+  const res = await db.query('SELECT last_reset FROM users WHERE userid = $1', [userId]);
+  const lastReset = res.rows[0]?.last_reset;
+  const today = new Date().toISOString().split('T')[0];
+
+  if (lastReset !== today) {
+    // Xoá toàn bộ nhiệm vụ đã nhận của user trong ngày hôm qua
+    await db.query('DELETE FROM user_missions WHERE userid = $1', [userId]);
+
+    // Cập nhật lại ngày reset
+    await db.query('UPDATE users SET last_reset = $1 WHERE userid = $2', [today, userId]);
+  }
+};
+
 
 exports.getMissions = async (req, res) => {
   const userId = req.params.userid;
