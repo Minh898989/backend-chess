@@ -45,6 +45,7 @@ exports.getMissions = async (req, res) => {
 
     res.json({ missions: result, totalPoints, level });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Lỗi máy chủ' });
   }
 };
@@ -59,14 +60,13 @@ exports.claimMission = async (req, res) => {
 
     const stats = await model.getUserStats(userid);
     const isEligible = missionConditions[missionId]?.(stats) || false;
-    const alreadyClaimed = await model.checkClaimed(userid, missionId);
 
     if (!isEligible) return res.status(400).json({ message: 'Chưa đủ điều kiện nhận thưởng' });
-    if (alreadyClaimed) return res.status(400).json({ message: 'Đã nhận thưởng rồi' });
 
     await model.claimReward(userid, missionId, mission.reward_points);
     res.json({ message: 'Nhận thưởng thành công!' });
   } catch (err) {
-    res.status(500).json({ message: 'Lỗi máy chủ khi nhận thưởng' });
+    console.error(err.message);
+    res.status(400).json({ message: err.message || 'Lỗi khi nhận thưởng' });
   }
 };
