@@ -12,6 +12,7 @@ exports.getMissions = async (req, res) => {
   const userId = req.params.userid;
   const missions = await model.getAllMissions();
   const stats = await model.getUserStats(userId);
+  const totalPoints = await model.getTotalClaimedPoints(userId);
 
   const result = await Promise.all(missions.map(async (m) => {
     const isEligible = missionConditions[m.id] ? missionConditions[m.id](stats) : false;
@@ -23,7 +24,7 @@ exports.getMissions = async (req, res) => {
     };
   }));
 
-  res.json(result);
+  res.json({ missions: result, totalPoints });
 };
 
 exports.claimMission = async (req, res) => {

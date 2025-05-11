@@ -9,6 +9,15 @@ const getUserStats = async (userId) => {
   const res = await db.query('SELECT * FROM user_stats WHERE userid = $1', [userId]);
   return res.rows[0];
 };
+const getTotalClaimedPoints = async (userId) => {
+  const res = await db.query(`
+    SELECT COALESCE(SUM(m.reward_points), 0) AS total
+    FROM user_missions um
+    JOIN missions m ON um.mission_id = m.id
+    WHERE um.userid = $1
+  `, [userId]);
+  return res.rows[0].total;
+};
 
 const checkClaimed = async (userId, missionId) => {
   const res = await db.query('SELECT * FROM user_missions WHERE userid = $1 AND mission_id = $2', [userId, missionId]);
@@ -24,5 +33,6 @@ module.exports = {
   getAllMissions,
   getUserStats,
   checkClaimed,
-  claimReward
+  claimReward,
+  getTotalClaimedPoints,
 };
