@@ -54,16 +54,27 @@ exports.claimMission = async (req, res) => {
   try {
     const { userid, missionId } = req.body;
 
+    // Lấy danh sách nhiệm vụ
     const missions = await model.getAllMissions();
     const mission = missions.find(m => m.id === missionId);
+
     if (!mission) return res.status(400).json({ message: 'Nhiệm vụ không tồn tại' });
 
+    // Kiểm tra điều kiện hoàn thành nhiệm vụ
     const stats = await model.getUserStats(userid);
     const isEligible = missionConditions[missionId]?.(stats) || false;
 
     if (!isEligible) return res.status(400).json({ message: 'Chưa đủ điều kiện nhận thưởng' });
 
+    // Kiểm tra xem nhiệm vụ đã được nhận thưởng chưa
+    const alreadyClaimed = await model.checkClaimed(userid, missionId);
+    if (alreadyClaimed) {
+      return res.status(400).json({ message: 'Bạn đã nhận thưởng nhiệm vụ này hôm nay rồi' });
+    }
+
+    // Tiến hành nhận thưởng
     await model.claimReward(userid, missionId, mission.reward_points);
+
     res.json({ message: 'Nhận thưởng thành công!' });
   } catch (err) {
     console.error(err.message);
