@@ -59,7 +59,17 @@ exports.claimMission = async (req, res) => {
     if (claimed) return res.status(400).json({ message: 'Bạn đã nhận thưởng nhiệm vụ này hôm nay rồi' });
 
     await model.claimReward(userid, missionId, mission.reward_points);
-    res.json({ message: 'Nhận thưởng thành công!' });
+
+// Gọi lại để cập nhật totalPoints và level sau khi nhận
+const totalPoints = await model.getTotalClaimedPoints(userid);
+const level = totalPoints >= 100 ? 3 : totalPoints >= 30 ? 2 : 1;
+
+res.json({
+  message: 'Nhận thưởng thành công!',
+  totalPoints,
+  level,
+});
+
   } catch (err) {
     res.status(400).json({ message: err.message || 'Lỗi khi nhận thưởng' });
   }
