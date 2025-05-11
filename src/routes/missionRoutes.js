@@ -2,10 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { getUserMissionsStatus, claimMissionReward } = require('../controllers/missionController');
 
-// Lấy thông tin nhiệm vụ của người chơi
-router.get('/missions/user/:userid', getUserMissionsStatus);
-
-// Nhận thưởng cho một nhiệm vụ
-router.post('/missions/claim', claimMissionReward);
+// Dùng userid thay vì username
+router.get('/missions/user/:userid', getUserMissionsStatus);  // Sửa từ :username thành :userid
+router.post('/missions/claim', claimMissionReward);  // POST giữ nguyên
 
 module.exports = router;

@@ -1,48 +1,56 @@
-const db = require('../config/db');
+// src/models/missionModel.js
 
-const MissionModel = {
-  // Lấy tất cả nhiệm vụ
-  async getAllMissions() {
-    return db.any('SELECT * FROM missions');
-  },
+const db = require('../config/db'); // đường dẫn đến file cấu hình pool
 
-  // Lấy thông tin stats của người chơi
-  async getUserStats(userid) {
-    return db.oneOrNone('SELECT * FROM user_stats WHERE userid = $1', [userid]);
-  },
-
-  // Lấy các nhiệm vụ đã được nhận hôm nay
-  async getUserClaimedMissionIdsToday(userid) {
-    const rows = await db.any(
-      'SELECT mission_id FROM user_missions WHERE userid = $1 AND date_completed = CURRENT_DATE',
-      [userid]
-    );
-    return rows.map((row) => row.mission_id);
-  },
-
-  // Lấy tổng điểm của người chơi
-  async getUserTotalPoints(userid) {
-    const row = await db.oneOrNone('SELECT total_points FROM user_progress WHERE userid = $1', [userid]);
-    return row ? row.total_points : 0;
-  },
-
-  // Lấy thông tin một nhiệm vụ theo ID
-  async getMissionById(missionId) {
-    return db.oneOrNone('SELECT * FROM missions WHERE id = $1', [missionId]);
-  },
-
-  // Cập nhật nhiệm vụ đã nhận
-  async claimMission(userid, missionId) {
-    return db.none('INSERT INTO user_missions (userid, mission_id, date_completed) VALUES ($1, $2, CURRENT_DATE)', [
-      userid,
-      missionId,
-    ]);
-  },
-
-  // Cập nhật điểm cho người chơi
-  async updateUserPoints(userid, points) {
-    return db.none('UPDATE user_progress SET total_points = total_points + $1 WHERE userid = $2', [points, userid]);
-  },
+const getAllMissions = async () => {
+  const result = await db.query('SELECT * FROM missions');
+  return result.rows;
 };
 
-module.exports = MissionModel;
+const getMissionById = async (id) => {
+  const result = await db.query('SELECT * FROM missions WHERE id = $1', [id]);
+  return result.rows[0];
+};
+
+const getUserStats = async (userid) => {
+  const result = await db.query('SELECT * FROM user_stats WHERE userid = $1', [userid]);
+  return result.rows[0];
+};
+
+const getUserClaimedMissionIdsToday = async (userid) => {
+  const result = await db.query(`
+    SELECT mission_id FROM claimed_missions
+WHERE userid = $1 AND DATE(claimed_at) = CURRENT_DATE
+
+  `, [userid]);
+  return result.rows.map(r => r.mission_id);
+};
+
+const getUserTotalPoints = async (userid) => {
+  const result = await db.query('SELECT total_points FROM users WHERE userid = $1', [userid]);
+  return result.rows[0]?.total_points || 0;
+};
+
+const claimMission = async (userid, missionId) => {
+  await db.query(`
+    INSERT INTO claimed_missions (userid, mission_id, claimed_at)
+    VALUES ($1, $2, CURRENT_TIMESTAMP)
+  `, [userid, missionId]);
+};
+
+
+const updateUserPoints = async (userid, points) => {
+  await db.query(`
+    UPDATE users SET total_points = total_points + $1 WHERE userid = $2
+  `, [points, userid]);
+};
+
+module.exports = {
+  getAllMissions,
+  getMissionById,
+  getUserStats,
+  getUserClaimedMissionIdsToday,
+  getUserTotalPoints,
+  claimMission,
+  updateUserPoints
+};
