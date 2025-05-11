@@ -68,6 +68,7 @@ res.json({
   message: 'Nhận thưởng thành công!',
   totalPoints,
   level,
+  updatedMission: mission
 });
 
   } catch (err) {
