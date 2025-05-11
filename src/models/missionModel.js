@@ -11,12 +11,11 @@ const getUserStats = async (userId) => {
 };
 const getTotalClaimedPoints = async (userId) => {
   const res = await db.query(`
-    SELECT COALESCE(SUM(m.reward_points), 0) AS total
-    FROM user_missions um
-    JOIN missions m ON um.mission_id = m.id
-    WHERE um.userid = $1
+    SELECT COALESCE(points, 0) AS total
+    FROM users
+    WHERE userid = $1
   `, [userId]);
-  return res.rows[0].total;
+  return res.rows.length ? res.rows[0].total : 0;
 };
 
 const checkClaimed = async (userId, missionId) => {
