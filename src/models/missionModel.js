@@ -19,12 +19,20 @@ const getTotalClaimedPoints = async (userId) => {
 };
 
 const checkClaimed = async (userId, missionId) => {
-  const res = await db.query('SELECT * FROM user_missions WHERE userid = $1 AND mission_id = $2', [userId, missionId]);
+  const today = new Date().toISOString().split('T')[0];
+  const res = await db.query(
+    'SELECT 1 FROM user_missions WHERE userid = $1 AND mission_id = $2 AND claimed_date = $3',
+    [userId, missionId, today]
+  );
   return res.rowCount > 0;
 };
 
 const claimReward = async (userId, missionId, rewardPoints) => {
-  await db.query('INSERT INTO user_missions(userid, mission_id, claimed_at) VALUES ($1, $2, NOW())', [userId, missionId]);
+  const today = new Date().toISOString().split('T')[0];
+  await db.query(
+    'INSERT INTO user_missions(userid, mission_id, claimed_at, claimed_date) VALUES ($1, $2, NOW(), $3)',
+    [userId, missionId, today]
+  );
   await db.query('UPDATE users SET points = points + $1 WHERE userid = $2', [rewardPoints, userId]);
 };
 
