@@ -29,23 +29,16 @@ exports.getMissions = async (req, res) => {
     const stats = await model.getUserStats(userId);
     const totalPoints = await model.getTotalClaimedPoints(userId);
 
-    let level = 1;
-    if (totalPoints >= 100) level = 3;
-    else if (totalPoints >= 30) level = 2;
+    const level = totalPoints >= 100 ? 3 : totalPoints >= 30 ? 2 : 1;
 
-    const result = await Promise.all(missions.map(async (m) => {
-      const isEligible = missionConditions[m.id]?.(stats) || false;
+    const results = await Promise.all(missions.map(async (m) => {
+      const eligible = missionConditions[m.id]?.(stats) || false;
       const claimed = await model.checkClaimed(userId, m.id);
-      return {
-        ...m,
-        eligible: isEligible,
-        claimed
-      };
+      return { ...m, eligible, claimed };
     }));
 
-    res.json({ missions: result, totalPoints, level });
+    res.json({ missions: results, totalPoints, level });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: 'Lỗi máy chủ' });
   }
 };
@@ -54,30 +47,20 @@ exports.claimMission = async (req, res) => {
   try {
     const { userid, missionId } = req.body;
 
-    // Lấy danh sách nhiệm vụ
     const missions = await model.getAllMissions();
     const mission = missions.find(m => m.id === missionId);
-
     if (!mission) return res.status(400).json({ message: 'Nhiệm vụ không tồn tại' });
 
-    // Kiểm tra điều kiện hoàn thành nhiệm vụ
     const stats = await model.getUserStats(userid);
-    const isEligible = missionConditions[missionId]?.(stats) || false;
+    const eligible = missionConditions[missionId]?.(stats) || false;
+    if (!eligible) return res.status(400).json({ message: 'Chưa đủ điều kiện nhận thưởng' });
 
-    if (!isEligible) return res.status(400).json({ message: 'Chưa đủ điều kiện nhận thưởng' });
+    const claimed = await model.checkClaimed(userid, missionId);
+    if (claimed) return res.status(400).json({ message: 'Bạn đã nhận thưởng nhiệm vụ này hôm nay rồi' });
 
-    // Kiểm tra xem nhiệm vụ đã được nhận thưởng chưa
-    const alreadyClaimed = await model.checkClaimed(userid, missionId);
-    if (alreadyClaimed) {
-      return res.status(400).json({ message: 'Bạn đã nhận thưởng nhiệm vụ này hôm nay rồi' });
-    }
-
-    // Tiến hành nhận thưởng
     await model.claimReward(userid, missionId, mission.reward_points);
-
     res.json({ message: 'Nhận thưởng thành công!' });
   } catch (err) {
-    console.error(err.message);
     res.status(400).json({ message: err.message || 'Lỗi khi nhận thưởng' });
   }
 };

@@ -11,11 +11,7 @@ const getUserStats = async (userId) => {
 };
 
 const getTotalClaimedPoints = async (userId) => {
-  const res = await db.query(`
-    SELECT COALESCE(points, 0) AS total
-    FROM users
-    WHERE userid = $1
-  `, [userId]);
+  const res = await db.query('SELECT COALESCE(points, 0) AS total FROM users WHERE userid = $1', [userId]);
   return res.rows[0]?.total || 0;
 };
 
@@ -46,11 +42,9 @@ const claimReward = async (userId, missionId, rewardPoints) => {
     await db.query('COMMIT');
   } catch (err) {
     await db.query('ROLLBACK');
-
-    if (err.code === '23505') { // UNIQUE constraint violation
+    if (err.code === '23505') {
       throw new Error('Bạn đã nhận thưởng nhiệm vụ này hôm nay rồi');
     }
-
     throw err;
   }
 };
