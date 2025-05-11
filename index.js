@@ -22,7 +22,7 @@ app.use(express.json());
 // Đăng ký routes
 app.use('/api/auth', authRoutes); 
 app.use('/api/stats', gameRoutes);
-app.use('/api/missions', missionRoutes);
+app.use('/api', missionRoutes);
 
 
 // Middleware xử lý lỗi
