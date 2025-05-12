@@ -68,6 +68,7 @@ async function claimMissionReward(req, res) {
       case 3: isCompleted = stats.games_won >= 3; break;
       case 4: isCompleted = stats.total_minutes >= 10; break;
       case 5: isCompleted = stats.total_captured >= 10; break;
+      case 6: isCompleted = stats.total_captured >= 20; break;
       default: isCompleted = false;
     }
 
