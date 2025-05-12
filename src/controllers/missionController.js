@@ -72,6 +72,7 @@ async function claimMissionReward(req, res) {
     await Promise.all([
       MissionModel.claimMission(userid, missionId),
       MissionModel.updateUserPoints(userid, mission.reward_points),
+      MissionModel.saveCompletedMission(userid, missionId),
     ]);
 
     res.json({ message: 'Mission completed and reward claimed successfully!' });

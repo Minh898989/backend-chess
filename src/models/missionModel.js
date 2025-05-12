@@ -1,6 +1,6 @@
-// src/models/missionModel.js
 
-const db = require('../config/db'); // đường dẫn đến file cấu hình pool
+
+const db = require('../config/db'); 
 
 const getAllMissions = async () => {
   const result = await db.query('SELECT * FROM missions');
@@ -44,7 +44,12 @@ const updateUserPoints = async (userid, points) => {
     UPDATE users SET total_points = total_points + $1 WHERE userid = $2
   `, [points, userid]);
 };
-
+const saveCompletedMission = async (userid, missionId) => {
+  await db.query(`
+    INSERT INTO user_missions (userid, mission_id, date_completed)
+    VALUES ($1, $2, CURRENT_DATE)
+  `, [userid, missionId]);
+};
 module.exports = {
   getAllMissions,
   getMissionById,
@@ -52,5 +57,6 @@ module.exports = {
   getUserClaimedMissionIdsToday,
   getUserTotalPoints,
   claimMission,
-  updateUserPoints
+  updateUserPoints,
+  saveCompletedMission
 };
