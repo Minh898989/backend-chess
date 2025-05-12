@@ -1,20 +1,24 @@
-const path = require("path");
-const { updateUserAvatar, getUserById } = require("../models/avtModel");
+const { uploadAvatarToCloudinary, updateUserAvatar } = require("../models/avtModel");
 
 const uploadAvatar = async (req, res) => {
   try {
     const userId = req.params.userid;
 
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
 
-    const avatarPath = `/uploads/${req.file.filename}`;
+    // Upload avatar lên Cloudinary
+    const uploadResult = await uploadAvatarToCloudinary(req.file);
 
-    await updateUserAvatar(userId, avatarPath);
+    // Lấy URL avatar từ kết quả upload và lưu vào CSDL
+    const avatarUrl = uploadResult.secure_url;
+    await updateUserAvatar(userId, avatarUrl);
 
-    res.json({ message: "Avatar uploaded", avatar: avatarPath });
+    res.json({ message: "Avatar uploaded successfully", avatar: avatarUrl });
   } catch (error) {
-    console.error("Upload avatar error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Lỗi khi tải lên avatar:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -25,12 +29,12 @@ const getUserProfile = async (req, res) => {
 
     res.json(user);
   } catch (err) {
-    console.error("Get user error:", err);
+    console.error("Lỗi khi lấy thông tin người dùng:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
 
 module.exports = {
   uploadAvatar,
-  getUserProfile,
+  getUserProfile
 };

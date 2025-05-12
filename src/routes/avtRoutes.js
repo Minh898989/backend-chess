@@ -1,21 +1,17 @@
 const express = require("express");
-const router = express.Router();
 const multer = require("multer");
-const path = require("path");
 const { uploadAvatar, getUserProfile } = require("../controllers/avtController");
 
-// Cấu hình lưu trữ
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "public/uploads"),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
-});
+const router = express.Router();
 
-const upload = multer({ storage });
+// Cấu hình Multer để xử lý file tải lên
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-// GET user profile
+// Route lấy thông tin người dùng
 router.get("/:userid", getUserProfile);
 
-// POST upload avatar
+// Route upload avatar
 router.post("/upload-avatar/:userid", upload.single("avatar"), uploadAvatar);
 
 module.exports = router;

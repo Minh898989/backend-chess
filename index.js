@@ -24,9 +24,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes); 
 app.use('/api/stats', gameRoutes);
 app.use('/api', missionRoutes);
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 app.use("/api/users", userRoutes);
-
 
 
 // Middleware xử lý lỗi
