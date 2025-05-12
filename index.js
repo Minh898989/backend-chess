@@ -3,7 +3,8 @@ const cors = require('cors');
 const authRoutes = require('./src/routes/authRoutes');
 const gameRoutes = require('./src/routes/statsRoutes');
 const missionRoutes = require('./src/routes/missionRoutes');
-
+const userRoutes = require('./src/routes/avtRoutes');
+const path = require('path');
 const app = express();
 
 // CORS cấu hình
@@ -23,6 +24,9 @@ app.use(express.json());
 app.use('/api/auth', authRoutes); 
 app.use('/api/stats', gameRoutes);
 app.use('/api', missionRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+app.use("/api/users", userRoutes);
+
 
 
 // Middleware xử lý lỗi
