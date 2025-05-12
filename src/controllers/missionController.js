@@ -1,14 +1,14 @@
-// GET /missions/user/:userid
-const MissionModel = require('../models/missionModel');  // Import đúng mô-đun MissionModel
+
+const MissionModel = require('../models/missionModel'); 
 
 async function getUserMissionsStatus(req, res) {
   try {
-    const { userid } = req.params;  // userid là tên người dùng
+    const { userid } = req.params;  
 
-    // Lấy tất cả nhiệm vụ, stats người chơi, nhiệm vụ đã nhận hôm nay, và tổng điểm
+    
     const [missions, stats, claimedToday, totalPoints] = await Promise.all([
       MissionModel.getAllMissions(),
-      MissionModel.getUserStats(userid),  // Sử dụng userid là tên
+      MissionModel.getUserStats(userid),  
       MissionModel.getUserClaimedMissionIdsToday(userid),
       MissionModel.getUserTotalPoints(userid),
     ]);
@@ -44,11 +44,11 @@ async function getUserMissionsStatus(req, res) {
 // POST /missions/claim
 async function claimMissionReward(req, res) {
   try {
-    const { userid, missionId } = req.body;  // userid là tên người dùng
+    const { userid, missionId } = req.body; 
 
     const [mission, stats, claimedToday] = await Promise.all([
       MissionModel.getMissionById(missionId),
-      MissionModel.getUserStats(userid),  // Sử dụng userid là tên
+      MissionModel.getUserStats(userid),  
       MissionModel.getUserClaimedMissionIdsToday(userid),
     ]);
 
