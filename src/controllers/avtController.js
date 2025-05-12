@@ -1,19 +1,17 @@
-const { uploadAvatarToCloudinary, updateUserAvatar } = require("../models/avtModel");
+const { uploadAvatarToCloudinary, updateUserAvatar ,getUserById } = require("../models/avtModel");
 
 const uploadAvatar = async (req, res) => {
   try {
-    const userId = req.params.userid;
+    const userid = req.params.userid;
 
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    // Upload avatar lên Cloudinary
     const uploadResult = await uploadAvatarToCloudinary(req.file);
-
-    // Lấy URL avatar từ kết quả upload và lưu vào CSDL
     const avatarUrl = uploadResult.secure_url;
-    await updateUserAvatar(userId, avatarUrl);
+
+    await updateUserAvatar(userid, avatarUrl);
 
     res.json({ message: "Avatar uploaded successfully", avatar: avatarUrl });
   } catch (error) {
@@ -24,7 +22,8 @@ const uploadAvatar = async (req, res) => {
 
 const getUserProfile = async (req, res) => {
   try {
-    const user = await getUserById(req.params.userid);
+    const userid = req.params.userid;
+    const user = await getUserById(userid);
     if (!user) return res.status(404).json({ error: "User not found" });
 
     res.json(user);
@@ -33,6 +32,7 @@ const getUserProfile = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 module.exports = {
   uploadAvatar,

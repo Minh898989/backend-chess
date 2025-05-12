@@ -9,17 +9,18 @@ cloudinary.config({
 });
 
 // Cập nhật avatar vào cơ sở dữ liệu
-const updateUserAvatar = async (userId, avatarUrl) => {
-  const query = "UPDATE users SET avatar = $1 WHERE id = $2";
-  const values = [avatarUrl, userId];
+const updateUserAvatar = async (userid, avatarUrl) => {
+  const query = "UPDATE users SET avatar = $1 WHERE userid = $2";
+  const values = [avatarUrl, userid];
   await pool.query(query, values);
 };
 
-// Trả về thông tin người dùng
-const getUserById = async (userId) => {
-  const result = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+const getUserById = async (userid) => {
+  const result = await pool.query("SELECT * FROM users WHERE userid = $1", [userid]);
   return result.rows[0];
 };
+
+
 
 // Upload avatar lên Cloudinary
 const uploadAvatarToCloudinary = async (file) => {
