@@ -27,8 +27,11 @@ WHERE userid = $1 AND DATE(claimed_at) = CURRENT_DATE
 };
 
 const getUserTotalPoints = async (userid) => {
-  const result = await db.query('SELECT total_points FROM users WHERE userid = $1', [userid]);
-  return result.rows[0]?.total_points || 0;
+  const result = await db.query('SELECT total_points, level FROM users WHERE userid = $1', [userid]);
+  return {
+    totalPoints: result.rows[0]?.total_points || 0,
+    level: result.rows[0]?.level || 1
+  };
 };
 
 const claimMission = async (userid, missionId) => {
@@ -41,9 +44,13 @@ const claimMission = async (userid, missionId) => {
 
 const updateUserPoints = async (userid, points) => {
   await db.query(`
-    UPDATE users SET total_points = total_points + $1 WHERE userid = $2
+    UPDATE users
+    SET total_points = total_points + $1,
+        level = FLOOR((total_points + $1) / 100) + 1
+    WHERE userid = $2
   `, [points, userid]);
 };
+
 const saveCompletedMission = async (userid, missionId) => {
   await db.query(`
     INSERT INTO user_missions (userid, mission_id, date_completed)

@@ -6,7 +6,7 @@ async function getUserMissionsStatus(req, res) {
     const { userid } = req.params;  
 
     
-    const [missions, stats, claimedToday, totalPoints] = await Promise.all([
+    const [missions, stats, claimedToday,{ totalPoints, level }] = await Promise.all([
       MissionModel.getAllMissions(),
       MissionModel.getUserStats(userid),  
       MissionModel.getUserClaimedMissionIdsToday(userid),
@@ -24,6 +24,8 @@ async function getUserMissionsStatus(req, res) {
         case 3: isCompleted = stats.games_won >= 3; break;
         case 4: isCompleted = stats.total_minutes >= 10; break;
         case 5: isCompleted = stats.total_captured >= 10; break;
+        case 6: isCompleted = stats.total_captured >= 20; break;
+
         default: isCompleted = false;
       }
 
@@ -34,14 +36,18 @@ async function getUserMissionsStatus(req, res) {
       };
     });
 
-    res.json({ missions: enrichedMissions, totalPoints });
+    res.json({
+      missions: enrichedMissions,
+      totalPoints,
+      level
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error.' });
   }
 }
 
-// POST /missions/claim
+
 async function claimMissionReward(req, res) {
   try {
     const { userid, missionId } = req.body; 
