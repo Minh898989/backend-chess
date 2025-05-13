@@ -4,6 +4,7 @@ const authRoutes = require('./src/routes/authRoutes');
 const gameRoutes = require('./src/routes/statsRoutes');
 const missionRoutes = require('./src/routes/missionRoutes');
 const userRoutes = require('./src/routes/avtRoutes');
+const leaderboardRoutes = require('./src/routes/leaderboardRoutes');
 const path = require('path');
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/stats', gameRoutes);
 app.use('/api', missionRoutes);
 app.use("/api/users", userRoutes);
+app.use('/api', leaderboardRoutes);
 
 
 // Middleware xử lý lỗi
