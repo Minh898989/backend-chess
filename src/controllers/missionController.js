@@ -81,8 +81,8 @@ async function claimMissionReward(req, res) {
       MissionModel.updateUserPoints(userid, mission.reward_points),
       MissionModel.saveCompletedMission(userid, missionId),
     ]);
-
-    res.json({ message: 'Mission completed and reward claimed successfully!' });
+    const { totalPoints } = await MissionModel.getUserTotalPoints(userid);
+    res.json({ message: 'Mission completed and reward claimed successfully!' ,newTotalPoints: totalPoints,});
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error.' });
