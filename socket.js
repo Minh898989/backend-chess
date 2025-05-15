@@ -22,8 +22,12 @@ module.exports = (io) => {
       // Khi đủ 2 người thì emit startGame
       if (numMembers === 2) {
 
-        
-        io.to(roomCode).emit('startGame', { room_code: roomCode });
+        const players = Array.from(roomMembers[roomCode]);
+        const [playerWhite, playerBlack] = players;
+
+        io.to(playerWhite).emit('startGame', { color: 'white' });
+        io.to(playerBlack).emit('startGame', { color: 'black' });
+
         console.log(`🚀 startGame emitted to room ${roomCode}`);
       }
     });
