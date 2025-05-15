@@ -33,8 +33,9 @@ module.exports = (io) => {
         playerMapping[playerWhite] = { roomCode, color: 'white' };
         playerMapping[playerBlack] = { roomCode, color: 'black' };
 
-        io.to(playerWhite).emit('startGame', { color: 'white' });
-        io.to(playerBlack).emit('startGame', { color: 'black' });
+        io.to(playerWhite).emit('startGame', { color: 'white', room_code: roomCode });
+        io.to(playerBlack).emit('startGame', { color: 'black', room_code: roomCode });
+
 
         console.log(`🚀 Game started in room ${roomCode}`);
         console.log(`👤 Assigning WHITE to ${playerWhite}`);
