@@ -37,10 +37,13 @@ module.exports = (io) => {
         io.to(playerBlack).emit('startGame', { color: 'black' });
 
         console.log(`🚀 Game started in room ${roomCode}`);
+        console.log(`👤 Assigning WHITE to ${playerWhite}`);
+        console.log(`👤 Assigning BLACK to ${playerBlack}`);
       }
     });
 
     socket.on('move', ({ roomCode, move, fen }) => {
+      console.log(`📤 MOVE in room ${roomCode}:`, move);
       socket.to(String(roomCode)).emit('move', { move, fen });
     });
 
