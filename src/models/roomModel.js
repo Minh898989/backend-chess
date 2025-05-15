@@ -26,5 +26,13 @@ module.exports = {
       [guest_userid, room_code]
     );
     return result.rows[0];
-  }
+  },
+  async getRoomByCode(room_code) {
+  const result = await db.query(
+    'SELECT * FROM rooms WHERE room_code = $1',
+    [room_code]
+  );
+  return result.rows[0];
+}
+
 };

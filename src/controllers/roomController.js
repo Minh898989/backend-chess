@@ -36,5 +36,20 @@ module.exports = {
     } catch (err) {
       next(err);
     }
+  },
+  async getRoomByCode(req, res, next) {
+  try {
+    const room_code = parseInt(req.params.room_code);
+    const room = await Room.getRoomByCode(room_code);
+
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+
+    res.json({ success: true, room });
+  } catch (err) {
+    next(err);
   }
+}
+
 };
