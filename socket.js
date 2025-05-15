@@ -48,9 +48,15 @@ module.exports = (io) => {
       socket.to(String(roomCode)).emit('move', { move, fen });
     });
 
-   socket.on('resign', ({ roomCode, user }) => {
-  socket.to(String(roomCode)).emit('opponentResigned', user);
+   socket.on('resign', ({ winner, loser }) => {
+  const mapping = playerMapping[socket.id];
+  if (!mapping || !mapping.roomCode) return;
+
+  const roomCode = mapping.roomCode;
+  console.log(`🏳️ Player ${loser} resigned in room ${roomCode}. Winner: ${winner}`);
+  socket.to(roomCode).emit('opponentResigned', { winner, loser });
 });
+
 
     socket.on('disconnect', () => {
       console.log('🔴 Disconnected:', socket.id);

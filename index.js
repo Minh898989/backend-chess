@@ -10,6 +10,7 @@ const missionRoutes = require('./src/routes/missionRoutes');
 const userRoutes = require('./src/routes/avtRoutes');
 const leaderboardRoutes = require('./src/routes/leaderboardRoutes');
 const roomRoutes = require('./src/routes/roomRoutes');
+const resignRoutes = require('./src/routes/pointsRoutes');
 
 const setupSocket = require('./socket');
 const app = express();
@@ -45,8 +46,8 @@ app.use('/api/stats', gameRoutes);
 app.use('/api', missionRoutes);
 app.use("/api/users", userRoutes);
 app.use('/api', leaderboardRoutes);
-app.use('/api/rooms', roomRoutes); // ✅ chỉ để 1 lần
-
+app.use('/api/rooms', roomRoutes); 
+app.use('/api', resignRoutes);
 // Middleware xử lý lỗi
 app.use((err, req, res, next) => {
   console.error('Error details:', err);
