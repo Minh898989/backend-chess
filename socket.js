@@ -44,9 +44,13 @@ module.exports = (io) => {
     });
 
     socket.on('move', ({ roomCode, move, fen }) => {
-      console.log(`📤 MOVE in room ${roomCode}:`, move);
-      socket.to(String(roomCode)).emit('move', { move, fen });
-    });
+  const playerInfo = playerMapping[socket.id];
+  const color = playerInfo?.color; // Xác định người vừa đi là trắng hay đen
+
+  console.log(`📤 MOVE in room ${roomCode} by ${color}:`, move);
+  socket.to(String(roomCode)).emit('move', { move, fen, color }); // Gửi thêm color
+});
+
 
    socket.on('resign', ({ winner, loser }) => {
   const mapping = playerMapping[socket.id];
