@@ -27,7 +27,7 @@ module.exports = (io) => {
         // Gửi màu riêng cho từng player
         io.to(playerWhite).emit('startGame', { color: 'white' });
         io.to(playerBlack).emit('startGame', { color: 'black' });
-        io.to(roomCode).emit('startGame', { room_code: roomCode });
+        
 
         
         console.log(`🚀 startGame emitted to room ${roomCode}`);
