@@ -34,7 +34,7 @@ module.exports = (io) => {
       }
     });
 
-    socket.on('move', ({ roomCode, move }) => {
+    socket.on('move', ({ roomCode, move, fen }) => {
       
       socket.to(String(roomCode)).emit('move', { move, fen });
 
