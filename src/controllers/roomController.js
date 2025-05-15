@@ -26,6 +26,7 @@ module.exports = {
       // ✅ Gửi cập nhật tới phòng socket
       const io = req.app.get('io'); // io phải được gán ở server.js
       io.to(String(room_code)).emit('roomUpdated', updatedRoom);
+      
       if (updatedRoom.host_userid && updatedRoom.guest_userid) {
       io.to(String(room_code)).emit('startGame', updatedRoom);
       console.log('🎮 Game started in room', room_code);
