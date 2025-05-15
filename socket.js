@@ -24,9 +24,12 @@ module.exports = (io) => {
 
         const players = Array.from(roomMembers[roomCode]);
         const [playerWhite, playerBlack] = players;
-
+ 
         io.to(playerWhite).emit('startGame', { color: 'white' });
         io.to(playerBlack).emit('startGame', { color: 'black' });
+
+  // Emit thông báo chung (tuỳ frontend có dùng hay không)
+        io.to(roomCode).emit('gameStarted', { roomCode });
 
         console.log(`🚀 startGame emitted to room ${roomCode}`);
       }
