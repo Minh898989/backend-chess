@@ -22,6 +22,11 @@ module.exports = {
       if (room.status !== 'waiting') return res.status(400).json({ error: 'Room already started or full' });
 
       const updatedRoom = await Room.joinRoom(room_code, guest_userid);
+
+      // ✅ Gửi cập nhật tới phòng socket
+      const io = req.app.get('io'); // io phải được gán ở server.js
+      io.to(String(room_code)).emit('roomUpdated', updatedRoom);
+
       res.json({ success: true, room: updatedRoom });
     } catch (err) {
       next(err);
