@@ -49,18 +49,44 @@ module.exports = (io) => {
     });
 
     socket.on('resign', ({ roomCode, user }) => {
-  const playersInRoom = Array.from(roomMembers[roomCode] || []);
-  const loser = user;
-  const winner = playersInRoom.find(sid => sid !== socket.id); // Người còn lại trong phòng
+  const members = Array.from(roomMembers[roomCode] || []);
+  if (members.length !== 2) {
+    // Không đủ người trong phòng, không xử lý
+    return;
+  }
 
-  socket.to(String(roomCode)).emit('opponentResigned', {
-    loser,
-    winner
+  // Tìm socket.id của người đầu hàng và người thắng
+  const loserSocketId = members.find(id => {
+    // So sánh user với playerMapping[id] để xác định socket của người đầu hàng
+    const mapping = playerMapping[id];
+    if (!mapping) return false;
+
+    // Cách xác định user? Nếu user là color (white/black), hoặc userid string thì tùy
+    // Ở đây ta giả sử user truyền lên là color hoặc userid. Nếu là userid thì cần mapping thêm.
+
+    // Mình giả sử user là color 'white' hoặc 'black' (do frontend có playerColor)
+
+    return mapping.color === user || id === user;
   });
 
-  console.log(`🏳️ ${loser} resigned. ${winner} wins in room ${roomCode}`);
-});
+  // Nếu không tìm thấy socket id của người đầu hàng thì fallback
+  if (!loserSocketId) {
+    // gửi nguyên dữ liệu user như cũ
+    socket.to(String(roomCode)).emit('opponentResigned', user);
+    return;
+  }
 
+  const winnerSocketId = members.find(id => id !== loserSocketId);
+
+  // Lấy tên người chơi (userid) từ playerMapping hoặc room dữ liệu (nếu có)
+  // Bạn có thể mở rộng lưu player name khi join room. Hiện tại tạm lấy màu.
+
+  const loser = playerMapping[loserSocketId]?.color || 'unknown';
+  const winner = playerMapping[winnerSocketId]?.color || 'unknown';
+
+  // Gửi thông báo rõ ràng kèm tên người thắng/thua
+  io.to(String(roomCode)).emit('opponentResigned', { loser, winner });
+});
 
     socket.on('disconnect', () => {
       console.log('🔴 Disconnected:', socket.id);
