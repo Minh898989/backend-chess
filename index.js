@@ -19,22 +19,25 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
+  transports: ['websocket'],
 };
+app.use(cors(corsOptions));
+app.use(express.json());
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: 'https://frontend-chess-seven.vercel.app',
     methods: ['GET', 'POST'],
-    credentials: true,
-  }
+    credentials: true
+  },
+  transports: ['websocket'] // ⬅️ Rất quan trọng trên Render
 });
+
 
 app.set('io', io); // ✅ Đặt trước router
 setupSocket(io);
 
-app.use(cors(corsOptions));
-app.use(express.json());
 
 // Đăng ký routes
 app.use('/api/auth', authRoutes); 
