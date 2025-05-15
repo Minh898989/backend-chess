@@ -36,7 +36,8 @@ module.exports = (io) => {
 
     socket.on('move', ({ roomCode, move }) => {
       
-      socket.to(String(roomCode)).emit('move', { move });
+      socket.to(String(roomCode)).emit('move', { move, fen });
+
     });
 
     socket.on('resign', ({ roomCode, user }) => {
