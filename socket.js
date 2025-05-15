@@ -49,8 +49,18 @@ module.exports = (io) => {
     });
 
     socket.on('resign', ({ roomCode, user }) => {
-      socket.to(String(roomCode)).emit('opponentResigned', user);
-    });
+  const playersInRoom = Array.from(roomMembers[roomCode] || []);
+  const loser = user;
+  const winner = playersInRoom.find(sid => sid !== socket.id); // Người còn lại trong phòng
+
+  socket.to(String(roomCode)).emit('opponentResigned', {
+    loser,
+    winner
+  });
+
+  console.log(`🏳️ ${loser} resigned. ${winner} wins in room ${roomCode}`);
+});
+
 
     socket.on('disconnect', () => {
       console.log('🔴 Disconnected:', socket.id);
