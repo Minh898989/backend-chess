@@ -3,8 +3,9 @@ const playerMapping = {};   // socket.id -> { roomCode, color }
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
-    console.log('🟢 Socket connected:', socket.id);
+    console.log(`🟢 Socket connected: ${socket.id}`);
 
+    // Handle player joining a room
     socket.on('joinRoom', (roomCode) => {
       roomCode = String(roomCode);
       if (!roomMembers[roomCode]) {
@@ -14,7 +15,6 @@ module.exports = (io) => {
       const numMembers = roomMembers[roomCode].size;
 
       if (numMembers >= 2) {
-        // Phòng đầy, không cho vào
         socket.emit('roomFull');
         console.log(`🚫 Room ${roomCode} full. User ${socket.id} denied.`);
         return;
@@ -23,9 +23,9 @@ module.exports = (io) => {
       socket.join(roomCode);
       roomMembers[roomCode].add(socket.id);
       console.log(`✅ User ${socket.id} joined room ${roomCode}`);
-      console.log(`Room ${roomCode} now has ${roomMembers[roomCode].size} members.`);
+      console.log(`📊 Room ${roomCode} now has ${roomMembers[roomCode].size} members.`);
 
-      // Khi đủ 2 người thì gán màu và emit startGame
+      // If room has 2 players, assign colors and start the game
       if (roomMembers[roomCode].size === 2) {
         const players = Array.from(roomMembers[roomCode]);
         const [playerWhite, playerBlack] = players;
@@ -36,33 +36,33 @@ module.exports = (io) => {
         io.to(playerWhite).emit('startGame', { color: 'white', room_code: roomCode });
         io.to(playerBlack).emit('startGame', { color: 'black', room_code: roomCode });
 
-
         console.log(`🚀 Game started in room ${roomCode}`);
         console.log(`👤 Assigning WHITE to ${playerWhite}`);
         console.log(`👤 Assigning BLACK to ${playerBlack}`);
       }
     });
 
+    // Handle move event from a player
     socket.on('move', ({ roomCode, move, fen }) => {
-  console.log(`📤 MOVE in room ${roomCode}:`, move);
-  socket.to(String(roomCode)).emit('move', { move, fen });
-});
+      console.log(`📤 MOVE in room ${roomCode}:`, move);
+      socket.to(String(roomCode)).emit('move', { move, fen });
+    });
 
+    // Handle resignation
+    socket.on('resign', ({ winner, loser }) => {
+      const mapping = playerMapping[socket.id];
+      if (!mapping || !mapping.roomCode) return;
 
-   socket.on('resign', ({ winner, loser }) => {
-  const mapping = playerMapping[socket.id];
-  if (!mapping || !mapping.roomCode) return;
+      const roomCode = mapping.roomCode;
+      console.log(`🏳️ Player ${loser} resigned in room ${roomCode}. Winner: ${winner}`);
+      socket.to(roomCode).emit('opponentResigned', { winner, loser });
+    });
 
-  const roomCode = mapping.roomCode;
-  console.log(`🏳️ Player ${loser} resigned in room ${roomCode}. Winner: ${winner}`);
-  socket.to(roomCode).emit('opponentResigned', { winner, loser });
-});
-
-
+    // Handle disconnect
     socket.on('disconnect', () => {
-      console.log('🔴 Disconnected:', socket.id);
+      console.log(`🔴 Disconnected: ${socket.id}`);
 
-      // Xoá khỏi roomMembers và playerMapping
+      // Remove player from all rooms they were in
       for (const roomCode in roomMembers) {
         roomMembers[roomCode].delete(socket.id);
 
@@ -72,6 +72,7 @@ module.exports = (io) => {
         }
       }
 
+      // Remove from player mapping
       if (playerMapping[socket.id]) {
         delete playerMapping[socket.id];
       }
