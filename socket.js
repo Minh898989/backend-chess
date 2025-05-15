@@ -24,12 +24,7 @@ module.exports = (io) => {
       
         io.to(roomCode).emit('startGame', { room_code: roomCode });
 
-        const players = Array.from(roomMembers[roomCode]);
-        const [playerWhite, playerBlack] = players;
-
-        // Gửi màu riêng cho từng player
-        io.to(playerWhite).emit('startGame', { color: 'white' });
-        io.to(playerBlack).emit('startGame', { color: 'black' });
+        
         console.log(`🚀 startGame emitted to room ${roomCode}`);
       }
     });
