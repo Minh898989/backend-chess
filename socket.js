@@ -72,7 +72,11 @@ module.exports = (io) => {
     });
     socket.on('chatMessage', ({ roomCode, msg }) => {
   console.log(`💬 Chat in ${roomCode} from ${msg.user}: ${msg.text}`);
-  socket.to(String(roomCode)).emit('chatMessage', msg); // gửi cho đối phương trong phòng
+  socket.to(String(roomCode)).emit('chatMessage', msg);
+   socket.to(String(roomCode)).emit('unreadMessage', {
+    from: msg.user,
+    roomCode
+  }); // gửi cho đối phương trong phòng
 });
 
 
