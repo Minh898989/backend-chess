@@ -70,6 +70,11 @@ module.exports = (io) => {
       console.log(`🏳️ Player ${loser} resigned in room ${roomCode}. Winner: ${winner}`);
       socket.to(roomCode).emit('opponentResigned', { winner, loser });
     });
+    socket.on('chatMessage', ({ roomCode, msg }) => {
+  console.log(`💬 Chat in ${roomCode} from ${msg.user}: ${msg.text}`);
+  socket.to(String(roomCode)).emit('chatMessage', msg); // gửi cho đối phương trong phòng
+});
+
 
     socket.on('disconnect', () => {
       console.log(`🔴 Disconnected: ${socket.id}`);
