@@ -6,5 +6,6 @@ router.get('/search', controller.findFriends); // ?userid=...
 router.post('/send', controller.sendRequest);
 router.post('/respond', controller.respondRequest);
 router.get('/duration/:user1/:user2', controller.friendshipDuration);
+router.get('/requests/:userId', controller.getIncomingRequests);
 
 module.exports = router;

@@ -51,10 +51,25 @@ const friendshipDuration = async (req, res) => {
   const days = Math.floor((new Date() - new Date(data.friendship_start)) / (1000 * 60 * 60 * 24));
   res.json({ days, message: `Đã là bạn bè ${days} ngày` });
 };
+// Lấy danh sách lời mời đến (người nhận)
+const getIncomingRequests = async (req, res) => {
+  const { userId } = req.params;
+  const result = await db.query(
+    `SELECT fr.id, fr.sender_id, u.userid as sender_userid, u.avatar
+     FROM friend_requests fr
+     JOIN users u ON fr.sender_id = u.id
+     WHERE fr.receiver_id = $1 AND fr.status = 'pending'
+     ORDER BY fr.created_at DESC`,
+    [userId]
+  );
+  res.json(result.rows);
+};
+
 
 module.exports = {
   findFriends,
   sendRequest,
   respondRequest,
-  friendshipDuration
+  friendshipDuration,
+  getIncomingRequests
 };
