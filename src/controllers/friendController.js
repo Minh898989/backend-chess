@@ -22,6 +22,16 @@ const FriendController = {
     if (!sender || !receiver) {
       return res.status(404).json({ message: 'Sender or Receiver not found' });
     }
+    const existingRequest = await FriendModel.checkExistingRequest(sender.id, receiver.id);
+    if (existingRequest) {
+      return res.status(400).json({ message: 'Friend request already sent' });
+    }
+
+    // Kiểm tra nếu đã là bạn bè
+    const alreadyFriends = await FriendModel.checkAlreadyFriends(sender.id, receiver.id);
+    if (alreadyFriends) {
+      return res.status(400).json({ message: 'You are already friends' });
+    }
     
     await FriendModel.sendFriendRequest(sender.id, receiver.id);
 
