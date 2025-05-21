@@ -59,28 +59,8 @@ const FriendModel = {
       [userId]
     );
     return result.rows;
-  },
+  }
   // Kiểm tra đã là bạn chưa
-checkIfFriends: async (userId1, userId2) => {
-  const query = `
-    SELECT 1 FROM friends 
-    WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)
-    LIMIT 1;
-  `;
-  const result = await db.query(query, [userId1, userId2]);
-  return result.rowCount > 0;
-},
-
-// Kiểm tra đã gửi lời mời chưa
-checkExistingRequest: async (senderId, receiverId) => {
-  const query = `
-    SELECT 1 FROM friend_requests 
-    WHERE sender_id = $1 AND receiver_id = $2 AND status = 'pending'
-    LIMIT 1;
-  `;
-  const result = await db.query(query, [senderId, receiverId]);
-  return result.rowCount > 0;
-},
 
 };
 
