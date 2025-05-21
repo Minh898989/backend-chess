@@ -39,7 +39,9 @@ const FriendController = {
     const user = await FriendModel.findUserByUserId(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const requests = await FriendModel.getFriendRequests(user.id); // pass actual ID
+    if (action === 'accept') {
+        await FriendModel.createFriendship(request.sender_id, request.receiver_id);
+      }
     res.json(requests);
   } catch (err) {
     console.error(err); // log for debugging
@@ -53,7 +55,7 @@ const FriendController = {
     try {
       const request = await FriendModel.respondToRequest(requestId, action);
       if (action === 'accept') {
-      const alreadyFriends = await FriendModel.checkIfFriends(request.sender_id, request.receiver_id);
+      
       
     }
 
