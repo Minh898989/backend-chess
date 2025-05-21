@@ -11,6 +11,7 @@ const userRoutes = require('./src/routes/avtRoutes');
 const leaderboardRoutes = require('./src/routes/leaderboardRoutes');
 const roomRoutes = require('./src/routes/roomRoutes');
 const resignRoutes = require('./src/routes/pointsRoutes');
+const friendRoutes = require('./src/routes/friendRoutes');
 
 const setupSocket = require('./socket');
 const app = express();
@@ -48,6 +49,7 @@ app.use("/api/users", userRoutes);
 app.use('/api', leaderboardRoutes);
 app.use('/api/rooms', roomRoutes); 
 app.use('/api', resignRoutes);
+app.use('/api/friends', friendRoutes);
 // Middleware xử lý lỗi
 app.use((err, req, res, next) => {
   console.error('Error details:', err);

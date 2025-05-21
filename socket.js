@@ -1,6 +1,6 @@
-const roomMembers = {};     // roomCode -> Set of socket.id
-const playerMapping = {};   // socket.id -> { roomCode, color }
-const userMapping = {};     // socket.id -> userid
+const roomMembers = {};     
+const playerMapping = {};   
+const userMapping = {};    
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
