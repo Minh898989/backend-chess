@@ -1,82 +1,59 @@
-const friendModel = require('../models/friendModel');
-const db = require('../config/db');
+const FriendModel = require('../models/friendModel');
 
-// Tìm bạn
-const findFriends = async (req, res) => {
-  const { userid } = req.query;
-  const users = await friendModel.findUserByUserId(userid);
-  res.json(users);
-};
+const FriendController = {
+  searchUser: async (req, res) => {
+    const { userid } = req.body;
+    try {
+      const user = await FriendModel.findUserByUserId(userid);
+      if (!user) return res.status(404).json({ message: 'User not found' });
+      res.json(user);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
 
-// Gửi lời mời
-const sendRequest = async (req, res) => {
-  const { senderId, receiverId } = req.body;
+  sendRequest: async (req, res) => {
+    const { senderId, receiverId } = req.body;
+    try {
+      await FriendModel.sendFriendRequest(senderId, receiverId);
+      res.json({ message: 'Friend request sent' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
 
-  if (senderId === receiverId)
-    return res.status(400).json({ message: 'Không thể tự gửi lời mời cho chính mình' });
+  getRequests: async (req, res) => {
+    const { userId } = req.params;
+    try {
+      const requests = await FriendModel.getFriendRequests(userId);
+      res.json(requests);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
 
-  const exists = await friendModel.checkPendingRequest(senderId, receiverId);
-  if (exists)
-    return res.status(400).json({ message: 'Đã gửi lời mời trước đó' });
+  respondRequest: async (req, res) => {
+    const { requestId, action } = req.body;
+    try {
+      const request = await FriendModel.respondToRequest(requestId, action);
+      if (action === 'accept') {
+        await FriendModel.createFriendship(request.sender_id, request.receiver_id);
+      }
+      res.json({ message: `Friend request ${action}ed` });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
 
-  await friendModel.sendFriendRequest(senderId, receiverId);
-  res.json({ message: 'Đã gửi lời mời kết bạn' });
-};
-
-// Phản hồi lời mời
-const respondRequest = async (req, res) => {
-  const { requestId, status } = req.body;
-
-  const result = await db.query(
-    'SELECT sender_id, receiver_id FROM friend_requests WHERE id = $1',
-    [requestId]
-  );
-  const { sender_id, receiver_id } = result.rows[0];
-
-  if (status === 'accepted') {
-    await friendModel.createFriendship(sender_id, receiver_id);
-  }
-
-  await friendModel.respondToRequest(requestId, status);
-  res.json({ message: `Lời mời đã được ${status}` });
-};
-
-// Tính số ngày tri kỷ
-const friendshipDuration = async (req, res) => {
-  const { user1, user2 } = req.params;
-  const data = await friendModel.getFriendshipDuration(user1, user2);
-
-  if (!data) return res.status(404).json({ message: 'Chưa là bạn bè' });
-
-  const days = Math.floor((new Date() - new Date(data.friendship_start)) / (1000 * 60 * 60 * 24));
-  res.json({ days, message: `Đã là bạn bè ${days} ngày` });
-};
-// Lấy danh sách lời mời đến (người nhận)
-// ✅ Correct version
-const getReceivedRequests = async (req, res) => {
-  const { userId } = req.params;
-
-  try {
-    const result = await db.query(
-      `SELECT fr.id, fr.sender_id, u.userid as sender_userid 
-       FROM friend_requests fr
-       JOIN users u ON fr.sender_id = u.id
-       WHERE fr.receiver_id = $1 AND fr.status = 'pending'`,
-      [userId]
-    );
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error fetching received requests:', error);
-    res.status(500).json({ message: 'Internal server error' });
+  getFriendList: async (req, res) => {
+    const { userId } = req.params;
+    try {
+      const friends = await FriendModel.getFriendListWithDays(userId);
+      res.json(friends);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   }
 };
 
-
-
-module.exports = {
-  findFriends,
-  sendRequest,
-  respondRequest,
-  friendshipDuration,
-  getReceivedRequests
-};
+module.exports = FriendController;
