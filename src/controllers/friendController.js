@@ -13,14 +13,25 @@ const FriendController = {
   },
 
   sendRequest: async (req, res) => {
-    const { senderId, receiverId } = req.body;
-    try {
-      await FriendModel.sendFriendRequest(senderId, receiverId);
-      res.json({ message: 'Friend request sent' });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+  const { senderId, receiverId } = req.body; // đang là userid (username)
+  try {
+    // Lấy id từ userid
+    const sender = await FriendModel.findUserByUserId(senderId);
+    const receiver = await FriendModel.findUserByUserId(receiverId);
+
+    if (!sender || !receiver) {
+      return res.status(404).json({ message: 'Sender or Receiver not found' });
     }
-  },
+
+    await FriendModel.sendFriendRequest(sender.id, receiver.id);
+
+    res.json({ message: 'Friend request sent' });
+  } catch (err) {
+    console.error(err); // debug
+    res.status(500).json({ error: err.message });
+  }
+},
+
 
   getRequests: async (req, res) => {
     const { userId } = req.params;
