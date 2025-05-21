@@ -52,17 +52,15 @@ const friendshipDuration = async (req, res) => {
   res.json({ days, message: `Đã là bạn bè ${days} ngày` });
 };
 // Lấy danh sách lời mời đến (người nhận)
-const getIncomingRequests = async (req, res) => {
-  const { userId } = req.params;
+const getReceivedRequests = async (userId) => {
   const result = await db.query(
-    `SELECT fr.id, fr.sender_id, u.userid as sender_userid, u.avatar
+    `SELECT fr.id, fr.sender_id, u.userid as sender_userid 
      FROM friend_requests fr
      JOIN users u ON fr.sender_id = u.id
-     WHERE fr.receiver_id = $1 AND fr.status = 'pending'
-     ORDER BY fr.created_at DESC`,
+     WHERE fr.receiver_id = $1 AND fr.status = 'pending'`,
     [userId]
   );
-  res.json(result.rows);
+  return result.rows;
 };
 
 
@@ -71,5 +69,5 @@ module.exports = {
   sendRequest,
   respondRequest,
   friendshipDuration,
-  getIncomingRequests
+  getReceivedRequests
 };
