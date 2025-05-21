@@ -34,14 +34,19 @@ const FriendController = {
 
 
   getRequests: async (req, res) => {
-    const { userId } = req.params;
-    try {
-      const requests = await FriendModel.getFriendRequests(userId);
-      res.json(requests);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
+  const { userId } = req.params; // actually userid like 'Minh'
+  try {
+    const user = await FriendModel.findUserByUserId(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const requests = await FriendModel.getFriendRequests(user.id); // pass actual ID
+    res.json(requests);
+  } catch (err) {
+    console.error(err); // log for debugging
+    res.status(500).json({ error: err.message });
+  }
+},
+
 
   respondRequest: async (req, res) => {
     const { requestId, action } = req.body;
