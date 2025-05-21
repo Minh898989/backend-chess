@@ -54,8 +54,8 @@ const FriendController = {
     try {
       const request = await FriendModel.respondToRequest(requestId, action);
       if (action === 'accept') {
-      
-      
+      // Gọi tạo kết bạn 2 chiều
+      await FriendModel.createFriendship(request.sender_id, request.receiver_id);
     }
 
       res.json({ message: `Friend request ${action}ed` });
