@@ -34,20 +34,19 @@ const FriendController = {
 
 
   getRequests: async (req, res) => {
-  const { userId } = req.params; 
+  const { userId } = req.params; // userId ở đây là userid (username)
   try {
     const user = await FriendModel.findUserByUserId(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    if (action === 'accept') {
-        await FriendModel.createFriendship(request.sender_id, request.receiver_id);
-      }
+    const requests = await FriendModel.getFriendRequests(user.id); // dùng id thực
     res.json(requests);
   } catch (err) {
-    console.error(err); // log for debugging
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 },
+
 
 
   respondRequest: async (req, res) => {
