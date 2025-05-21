@@ -52,16 +52,25 @@ const friendshipDuration = async (req, res) => {
   res.json({ days, message: `Đã là bạn bè ${days} ngày` });
 };
 // Lấy danh sách lời mời đến (người nhận)
-const getReceivedRequests = async (userId) => {
-  const result = await db.query(
-    `SELECT fr.id, fr.sender_id, u.userid as sender_userid 
-     FROM friend_requests fr
-     JOIN users u ON fr.sender_id = u.id
-     WHERE fr.receiver_id = $1 AND fr.status = 'pending'`,
-    [userId]
-  );
-  return result.rows;
+// ✅ Correct version
+const getReceivedRequests = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const result = await db.query(
+      `SELECT fr.id, fr.sender_id, u.userid as sender_userid 
+       FROM friend_requests fr
+       JOIN users u ON fr.sender_id = u.id
+       WHERE fr.receiver_id = $1 AND fr.status = 'pending'`,
+      [userId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching received requests:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 };
+
 
 
 module.exports = {
