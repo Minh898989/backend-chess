@@ -46,14 +46,21 @@ const FriendController = {
   },
 
   getFriendList: async (req, res) => {
-    const { userId } = req.params;
-    try {
-      const friends = await FriendModel.getFriendListWithDays(userId);
-      res.json(friends);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
+  const { userId } = req.params;
+  try {
+    // Tìm theo userid (username) để lấy id
+    const user = await FriendModel.findUserByUserId(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Gọi model với id thật
+    const friends = await FriendModel.getFriendListWithDays(user.id);
+    res.json(friends);
+  } catch (err) {
+    console.error(err); // Ghi log
+    res.status(500).json({ error: err.message });
   }
+}
+
 };
 
 module.exports = FriendController;
