@@ -22,7 +22,14 @@ const FriendController = {
     if (!sender || !receiver) {
       return res.status(404).json({ message: 'Sender or Receiver not found' });
     }
-
+    const areFriends = await FriendModel.checkIfFriends(sender.id, receiver.id);
+    if (areFriends) {
+      return res.status(400).json({ message: 'Already friends' });
+    }
+    const existingRequest = await FriendModel.checkExistingRequest(sender.id, receiver.id);
+    if (existingRequest) {
+      return res.status(400).json({ message: 'Friend request already sent' });
+    }
     await FriendModel.sendFriendRequest(sender.id, receiver.id);
 
     res.json({ message: 'Friend request sent' });
@@ -34,7 +41,7 @@ const FriendController = {
 
 
   getRequests: async (req, res) => {
-  const { userId } = req.params; // actually userid like 'Minh'
+  const { userId } = req.params; 
   try {
     const user = await FriendModel.findUserByUserId(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -53,8 +60,12 @@ const FriendController = {
     try {
       const request = await FriendModel.respondToRequest(requestId, action);
       if (action === 'accept') {
+      const alreadyFriends = await FriendModel.checkIfFriends(request.sender_id, request.receiver_id);
+      if (!alreadyFriends) {
         await FriendModel.createFriendship(request.sender_id, request.receiver_id);
       }
+    }
+
       res.json({ message: `Friend request ${action}ed` });
     } catch (err) {
       res.status(500).json({ error: err.message });
