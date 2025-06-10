@@ -1,4 +1,4 @@
-// models/userModel.js
+
 const pool = require('../config/db');
 
 const getLeaderboard = async () => {

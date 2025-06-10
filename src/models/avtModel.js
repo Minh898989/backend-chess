@@ -3,7 +3,7 @@ const pool = require("../config/db");
 
 // Cấu hình Cloudinary
 cloudinary.config({
-  cloud_name: "db3n1kswt", // Thay thế bằng cloud_name của bạn
+  cloud_name: "db3n1kswt", //
   api_key: "299293383991286", // Thay thế bằng api_key của bạn
   api_secret: "WaYbfiv0cz909aajjehkItnagvA", // Thay thế bằng api_secret của bạn
 });
