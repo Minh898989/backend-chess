@@ -1,21 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const friendController = require('../controllers/friendController');
-const auth = require('../middlewares/auth');
+
 
 // Tìm bạn
-router.get('/search', auth, friendController.searchUsers);
+router.get('/search', friendController.searchUsers);
 
 // Gửi lời mời kết bạn
-router.post('/request', auth, friendController.sendRequest);
+router.post('/request', friendController.sendRequest);
 
 // Chấp nhận / từ chối
-router.post('/respond', auth, friendController.respondRequest);
+router.post('/respond', friendController.respondRequest);
 
 // Lấy danh sách bạn bè
-router.get('/friends', auth, friendController.getFriends);
+router.get('/friends', friendController.getFriends);
 
 // Lấy danh sách lời mời đang chờ
-router.get('/requests', auth, friendController.getPending);
+router.get('/requests', friendController.getPending);
 
 module.exports = router;
