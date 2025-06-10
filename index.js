@@ -18,7 +18,7 @@ const app = express();
 
 const corsOptions = {
   origin: 'https://frontend-chess-seven.vercel.app', 
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   transports: ['websocket'],
