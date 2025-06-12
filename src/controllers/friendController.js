@@ -52,6 +52,7 @@ module.exports = {
       const friends = await friendModel.getFriends(userId);
       res.json(friends);
     } catch (err) {
+      console.error("Lỗi khi lấy danh sách bạn bè:", err); 
       res.status(500).json({ error: "Lỗi khi lấy danh sách bạn bè" });
     }
   },
