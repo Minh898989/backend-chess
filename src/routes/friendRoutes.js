@@ -6,6 +6,6 @@ router.get("/search", friendController.searchUsers);         // Tìm người d�
 router.post("/request", friendController.sendRequest);       // Gửi lời mời kết bạn
 router.post("/respond", friendController.respondToRequest);  // Chấp nhận/từ chối
 router.get("/list/:userId", friendController.getFriends);    // Lấy danh sách bạn bè
-router.get("/requests/:userId", friendController.getPendingRequests); // Lấy danh sách lời mời kết bạn
+
 
 module.exports = router;
