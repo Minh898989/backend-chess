@@ -49,7 +49,7 @@ app.use("/api/users", userRoutes);
 app.use('/api', leaderboardRoutes);
 app.use('/api/rooms', roomRoutes); 
 app.use('/api', resignRoutes);
-app.use('/friends', friendRoutes);
+app.use('/api/friends', friendRoutes);
 // Middleware xử lý lỗi
 app.use((err, req, res, next) => {
   console.error('Error details:', err);

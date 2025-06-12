@@ -1,51 +1,74 @@
 const pool = require('../config/db');
 
 module.exports = {
-  async searchUsers(keyword, currentUserId) {
+  // Tìm kiếm người dùng theo userid
+  searchUserByUserId: async (userid) => {
     const result = await pool.query(
-      `SELECT userid, avatar FROM users 
-       WHERE userid != $1 AND userid ILIKE $2`,
-      [currentUserId, `%${keyword}%`]
+      'SELECT userid, avatar FROM users WHERE userid = $1',
+      [userid]
     );
-    return result.rows;
+    return result.rows[0];
   },
 
-  async sendFriendRequest(fromId, toId) {
-    const result = await pool.query(
-      `SELECT * FROM friends WHERE 
-       (user1 = $1 AND user2 = $2) OR (user1 = $2 AND user2 = $1)`,
-      [fromId, toId]
-    );
-    if (result.rows.length > 0) return { error: 'Đã gửi hoặc là bạn rồi' };
-
+  // Gửi lời mời kết bạn
+  sendFriendRequest: async (from_user, to_user) => {
     await pool.query(
-      `INSERT INTO friends (user1, user2, status) 
+      `INSERT INTO friend_requests (from_user, to_user, status)
        VALUES ($1, $2, 'pending')`,
-      [fromId, toId]
+      [from_user, to_user]
     );
-    return { success: true };
   },
 
-  async acceptFriendRequest(fromId, toId) {
+  // Kiểm tra lời mời đã tồn tại chưa
+  checkExistingRequest: async (from_user, to_user) => {
+    const result = await pool.query(
+      `SELECT * FROM friend_requests 
+       WHERE from_user = $1 AND to_user = $2 AND status = 'pending'`,
+      [from_user, to_user]
+    );
+    return result.rows.length > 0;
+  },
+
+  // Chấp nhận lời mời
+  acceptFriendRequest: async (from_user, to_user) => {
     await pool.query(
-      `UPDATE friends 
-       SET status = 'accepted', accepted_at = CURRENT_TIMESTAMP 
-       WHERE user1 = $1 AND user2 = $2 AND status = 'pending'`,
-      [fromId, toId]
+      `UPDATE friend_requests 
+       SET status = 'accepted' 
+       WHERE from_user = $1 AND to_user = $2`,
+      [from_user, to_user]
+    );
+
+    // Lưu vào bảng friends
+    const [user1, user2] = [from_user, to_user].sort();
+    await pool.query(
+      `INSERT INTO friends (user1, user2) VALUES ($1, $2)`,
+      [user1, user2]
     );
   },
 
-  async getFriendsWithDays(userId) {
+  // Từ chối lời mời
+  rejectFriendRequest: async (from_user, to_user) => {
+    await pool.query(
+      `UPDATE friend_requests 
+       SET status = 'rejected' 
+       WHERE from_user = $1 AND to_user = $2`,
+      [from_user, to_user]
+    );
+  },
+
+  // Lấy danh sách bạn bè
+  getFriends: async (userid) => {
     const result = await pool.query(
       `SELECT 
-        u.userid, u.avatar,
-        EXTRACT(DAY FROM NOW() - f.accepted_at) AS days
-      FROM friends f
-      JOIN users u ON u.userid = CASE 
-        WHEN f.user1 = $1 THEN f.user2 
-        ELSE f.user1 END
-      WHERE (f.user1 = $1 OR f.user2 = $1) AND f.status = 'accepted'`,
-      [userId]
+         CASE 
+           WHEN user1 = $1 THEN user2 
+           ELSE user1 
+         END AS friendid,
+         u.avatar, f.friendship_date
+       FROM friends f
+       JOIN users u ON u.userid = CASE WHEN f.user1 = $1 THEN f.user2 ELSE f.user1 END
+       WHERE f.user1 = $1 OR f.user2 = $1`,
+      [userid]
     );
     return result.rows;
   }
