@@ -21,7 +21,6 @@ module.exports = {
       if (exists) return res.status(400).json({ message: 'Request already sent' });
 
       await friendModel.sendFriendRequest(from_user, to_user);
-
       res.json({ message: 'Friend request sent' });
     } catch (err) {
       res.status(500).json({ message: err.message });
@@ -57,14 +56,24 @@ module.exports = {
       res.status(500).json({ message: err.message });
     }
   },
-  getPendingRequests: async (req, res) => {
-  try {
-    const { userid } = req.params;
-    const requests = await friendModel.getPendingRequestsForUser(userid);
-    res.json(requests);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-},
 
+  getPendingRequests: async (req, res) => {
+    try {
+      const { userid } = req.params;
+      const requests = await friendModel.getPendingRequestsForUser(userid);
+      res.json(requests);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  },
+
+  getSentRequests: async (req, res) => {
+    try {
+      const { userid } = req.params;
+      const sent = await friendModel.getSentRequestsForUser(userid);
+      res.json(sent);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
 };

@@ -1,7 +1,6 @@
 const pool = require('../config/db');
 
 module.exports = {
-  // Tìm kiếm người dùng theo userid
   searchUserByUserId: async (userid) => {
     const result = await pool.query(
       'SELECT userid, avatar FROM users WHERE userid = $1',
@@ -10,7 +9,6 @@ module.exports = {
     return result.rows[0];
   },
 
-  // Gửi lời mời kết bạn
   sendFriendRequest: async (from_user, to_user) => {
     await pool.query(
       `INSERT INTO friend_requests (from_user, to_user, status)
@@ -19,17 +17,16 @@ module.exports = {
     );
   },
 
-  // Kiểm tra lời mời đã tồn tại chưa
   checkExistingRequest: async (from_user, to_user) => {
     const result = await pool.query(
       `SELECT * FROM friend_requests 
-       WHERE from_user = $1 AND to_user = $2 AND status = 'pending'`,
+       WHERE ((from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1)) 
+       AND status = 'pending'`,
       [from_user, to_user]
     );
     return result.rows.length > 0;
   },
 
-  // Chấp nhận lời mời
   acceptFriendRequest: async (from_user, to_user) => {
     await pool.query(
       `UPDATE friend_requests 
@@ -38,7 +35,6 @@ module.exports = {
       [from_user, to_user]
     );
 
-    // Lưu vào bảng friends
     const [user1, user2] = [from_user, to_user].sort();
     await pool.query(
       `INSERT INTO friends (user1, user2) VALUES ($1, $2)`,
@@ -46,7 +42,6 @@ module.exports = {
     );
   },
 
-  // Từ chối lời mời
   rejectFriendRequest: async (from_user, to_user) => {
     await pool.query(
       `UPDATE friend_requests 
@@ -56,7 +51,6 @@ module.exports = {
     );
   },
 
-  // Lấy danh sách bạn bè
   getFriends: async (userid) => {
     const result = await pool.query(
       `SELECT 
@@ -72,13 +66,26 @@ module.exports = {
     );
     return result.rows;
   },
-  getPendingRequestsForUser: async (userid) => {
-  const result = await pool.query(
-    `SELECT from_user FROM friend_requests
-     WHERE to_user = $1 AND status = 'pending'`,
-    [userid]
-  );
-  return result.rows;
-},
 
+  getPendingRequestsForUser: async (userid) => {
+    const result = await pool.query(
+      `SELECT fr.from_user, u.avatar
+       FROM friend_requests fr
+       JOIN users u ON fr.from_user = u.userid
+       WHERE fr.to_user = $1 AND fr.status = 'pending'`,
+      [userid]
+    );
+    return result.rows;
+  },
+
+  getSentRequestsForUser: async (userid) => {
+    const result = await pool.query(
+      `SELECT fr.to_user, u.avatar
+       FROM friend_requests fr
+       JOIN users u ON fr.to_user = u.userid
+       WHERE fr.from_user = $1 AND fr.status = 'pending'`,
+      [userid]
+    );
+    return result.rows;
+  },
 };
