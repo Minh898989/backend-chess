@@ -56,6 +56,16 @@ module.exports = {
       res.status(500).json({ error: "Lỗi khi lấy danh sách bạn bè" });
     }
   },
+  getPendingRequests: async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const requests = await friendModel.getPendingRequests(userId);
+    res.json(requests);
+  } catch (err) {
+    console.error("Lỗi khi lấy lời mời:", err);
+    res.status(500).json({ error: "Lỗi khi lấy lời mời" });
+  }
+}
 
   
 };

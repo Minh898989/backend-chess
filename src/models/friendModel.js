@@ -49,6 +49,19 @@ module.exports = {
     );
     return result.rows;
   },
+   getPendingRequests: async (userId) => {
+      const result = await pool.query(
+          `
+    SELECT fr.sender_id AS userid, u.avatar
+    FROM friend_requests fr
+    JOIN users u ON u.userid = fr.sender_id
+    WHERE fr.receiver_id = $1 AND fr.status = 'pending'
+    `,
+          [userId]
+      );
+      return result.rows;
+  }
+
 
   
 };
