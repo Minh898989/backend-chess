@@ -35,7 +35,7 @@ module.exports = {
   getFriends: async (userId) => {
     const result = await pool.query(
       `
-      SELECT u.userid, u.name, u.avatar
+      SELECT u.userid, u.avatar
       FROM users u
       JOIN friend_requests fr
         ON (
