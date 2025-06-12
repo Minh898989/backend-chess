@@ -55,5 +55,15 @@ module.exports = {
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
+  },
+  getPendingRequests: async (req, res) => {
+  try {
+    const { userid } = req.params;
+    const requests = await friendModel.getPendingRequestsForUser(userid);
+    res.json(requests);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+},
+
 };

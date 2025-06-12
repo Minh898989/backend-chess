@@ -71,5 +71,14 @@ module.exports = {
       [userid]
     );
     return result.rows;
-  }
+  },
+  getPendingRequestsForUser: async (userid) => {
+  const result = await pool.query(
+    `SELECT from_user FROM friend_requests
+     WHERE to_user = $1 AND status = 'pending'`,
+    [userid]
+  );
+  return result.rows;
+},
+
 };
