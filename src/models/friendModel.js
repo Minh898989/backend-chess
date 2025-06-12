@@ -3,7 +3,7 @@ const pool = require("../config/db"); // dùng PostgreSQL
 module.exports = {
   searchUsers: async (userid) => {
     const result = await pool.query(
-      "SELECT userid, name, avatar FROM users WHERE userid ILIKE $1 LIMIT 10",
+      "SELECT userid, avatar FROM users WHERE userid ILIKE $1 LIMIT 10",
       [`%${userid}%`]
     );
     return result.rows;
