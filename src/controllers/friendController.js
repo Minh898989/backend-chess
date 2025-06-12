@@ -21,6 +21,7 @@ module.exports = {
       if (exists) return res.status(400).json({ message: 'Request already sent' });
 
       await friendModel.sendFriendRequest(from_user, to_user);
+
       res.json({ message: 'Friend request sent' });
     } catch (err) {
       res.status(500).json({ message: err.message });
