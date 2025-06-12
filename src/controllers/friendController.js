@@ -1,79 +1,58 @@
-const friendModel = require('../models/friendModel');
+const friendModel = require("../models/friendModel");
 
 module.exports = {
-  searchUser: async (req, res) => {
+  searchUsers: async (req, res) => {
+    const { userid } = req.query;
     try {
-      const { userid } = req.params;
-      const user = await friendModel.searchUserByUserId(userid);
-      if (!user) return res.status(404).json({ message: 'User not found' });
-      res.json(user);
+      const users = await friendModel.searchUsers(userid);
+      res.json(users);
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      res.status(500).json({ error: "Lỗi khi tìm người dùng" });
     }
   },
 
   sendRequest: async (req, res) => {
+    const { sender_id, receiver_id } = req.body;
     try {
-      const { from_user, to_user } = req.body;
-      if (from_user === to_user) return res.status(400).json({ message: "Can't add yourself" });
+      if (sender_id === receiver_id)
+        return res.status(400).json({ error: "Không thể kết bạn với chính mình" });
 
-      const exists = await friendModel.checkExistingRequest(from_user, to_user);
-      if (exists) return res.status(400).json({ message: 'Request already sent' });
+      const exists = await friendModel.checkExistingRequest(sender_id, receiver_id);
+      if (exists)
+        return res.status(400).json({ error: "Đã tồn tại lời mời hoặc đã là bạn bè" });
 
-      await friendModel.sendFriendRequest(from_user, to_user);
-      res.json({ message: 'Friend request sent' });
+      await friendModel.createRequest(sender_id, receiver_id);
+      res.json({ message: "Đã gửi lời mời kết bạn" });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      res.status(500).json({ error: "Lỗi khi gửi lời mời kết bạn" });
     }
   },
 
-  acceptRequest: async (req, res) => {
+  respondToRequest: async (req, res) => {
+    const { sender_id, receiver_id, action } = req.body;
     try {
-      const { from_user, to_user } = req.body;
-      await friendModel.acceptFriendRequest(from_user, to_user);
-      res.json({ message: 'Friend request accepted' });
+      if (!["accept", "decline"].includes(action))
+        return res.status(400).json({ error: "Hành động không hợp lệ" });
+
+      const status = action === "accept" ? "accepted" : "declined";
+      const updated = await friendModel.respondRequest(sender_id, receiver_id, status);
+
+      if (updated === 0)
+        return res.status(400).json({ error: "Không tìm thấy lời mời phù hợp" });
+
+      res.json({ message: `Đã ${action === "accept" ? "chấp nhận" : "từ chối"} lời mời` });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      res.status(500).json({ error: "Lỗi khi phản hồi lời mời" });
     }
   },
 
-  rejectRequest: async (req, res) => {
+  getFriends: async (req, res) => {
+    const { userId } = req.params;
     try {
-      const { from_user, to_user } = req.body;
-      await friendModel.rejectFriendRequest(from_user, to_user);
-      res.json({ message: 'Friend request rejected' });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  },
-
-  getFriendsList: async (req, res) => {
-    try {
-      const { userid } = req.params;
-      const friends = await friendModel.getFriends(userid);
+      const friends = await friendModel.getFriends(userId);
       res.json(friends);
     } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  },
-
-  getPendingRequests: async (req, res) => {
-    try {
-      const { userid } = req.params;
-      const requests = await friendModel.getPendingRequestsForUser(userid);
-      res.json(requests);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  },
-
-  getSentRequests: async (req, res) => {
-    try {
-      const { userid } = req.params;
-      const sent = await friendModel.getSentRequestsForUser(userid);
-      res.json(sent);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
+      res.status(500).json({ error: "Lỗi khi lấy danh sách bạn bè" });
     }
   }
 };

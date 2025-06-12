@@ -1,13 +1,10 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const friendController = require('../controllers/friendController');
+const friendController = require("../controllers/friendController");
 
-router.get('/search/:userid', friendController.searchUser);
-router.post('/request', friendController.sendRequest);
-router.post('/accept', friendController.acceptRequest);
-router.post('/reject', friendController.rejectRequest);
-router.get('/friends/:userid', friendController.getFriendsList);
-router.get('/requests/:userid', friendController.getPendingRequests);
-router.get('/sent/:userid', friendController.getSentRequests);
+router.get("/search", friendController.searchUsers);         // Tìm người dùng theo userid
+router.post("/request", friendController.sendRequest);       // Gửi lời mời kết bạn
+router.post("/respond", friendController.respondToRequest);  // Chấp nhận/từ chối
+router.get("/list/:userId", friendController.getFriends);    // Lấy danh sách bạn bè
 
 module.exports = router;

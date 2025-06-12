@@ -1,91 +1,52 @@
-const pool = require('../config/db');
+const pool = require("../config/db"); // dùng PostgreSQL
 
 module.exports = {
-  searchUserByUserId: async (userid) => {
+  searchUsers: async (userid) => {
     const result = await pool.query(
-      'SELECT userid, avatar FROM users WHERE userid = $1',
-      [userid]
+      "SELECT userid, name, avatar FROM users WHERE userid ILIKE $1 LIMIT 10",
+      [`%${userid}%`]
     );
-    return result.rows[0];
+    return result.rows;
   },
 
-  sendFriendRequest: async (from_user, to_user) => {
-    await pool.query(
-      `INSERT INTO friend_requests (from_user, to_user, status)
-       VALUES ($1, $2, 'pending')`,
-      [from_user, to_user]
-    );
-  },
-
-  checkExistingRequest: async (from_user, to_user) => {
+  checkExistingRequest: async (senderId, receiverId) => {
     const result = await pool.query(
-      `SELECT * FROM friend_requests 
-       WHERE ((from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1)) 
-       AND status = 'pending'`,
-      [from_user, to_user]
+      "SELECT * FROM friend_requests WHERE (sender_id=$1 AND receiver_id=$2) OR (sender_id=$2 AND receiver_id=$1)",
+      [senderId, receiverId]
     );
     return result.rows.length > 0;
   },
 
-  acceptFriendRequest: async (from_user, to_user) => {
+  createRequest: async (senderId, receiverId) => {
     await pool.query(
-      `UPDATE friend_requests 
-       SET status = 'accepted' 
-       WHERE from_user = $1 AND to_user = $2`,
-      [from_user, to_user]
-    );
-
-    const [user1, user2] = [from_user, to_user].sort();
-    await pool.query(
-      `INSERT INTO friends (user1, user2) VALUES ($1, $2)`,
-      [user1, user2]
+      "INSERT INTO friend_requests (sender_id, receiver_id, status) VALUES ($1, $2, 'pending')",
+      [senderId, receiverId]
     );
   },
 
-  rejectFriendRequest: async (from_user, to_user) => {
-    await pool.query(
-      `UPDATE friend_requests 
-       SET status = 'rejected' 
-       WHERE from_user = $1 AND to_user = $2`,
-      [from_user, to_user]
-    );
-  },
-
-  getFriends: async (userid) => {
+  respondRequest: async (senderId, receiverId, status) => {
     const result = await pool.query(
-      `SELECT 
-         CASE 
-           WHEN user1 = $1 THEN user2 
-           ELSE user1 
-         END AS friendid,
-         u.avatar, f.friendship_date
-       FROM friends f
-       JOIN users u ON u.userid = CASE WHEN f.user1 = $1 THEN f.user2 ELSE f.user1 END
-       WHERE f.user1 = $1 OR f.user2 = $1`,
-      [userid]
+      "UPDATE friend_requests SET status=$1 WHERE sender_id=$2 AND receiver_id=$3 AND status='pending'",
+      [status, senderId, receiverId]
+    );
+    return result.rowCount;
+  },
+
+  getFriends: async (userId) => {
+    const result = await pool.query(
+      `
+      SELECT u.userid, u.name, u.avatar
+      FROM users u
+      JOIN friend_requests fr
+        ON (
+          (fr.sender_id = $1 AND fr.receiver_id = u.userid)
+          OR
+          (fr.receiver_id = $1 AND fr.sender_id = u.userid)
+        )
+      WHERE fr.status = 'accepted'
+      `,
+      [userId]
     );
     return result.rows;
-  },
-
-  getPendingRequestsForUser: async (userid) => {
-    const result = await pool.query(
-      `SELECT fr.from_user, u.avatar
-       FROM friend_requests fr
-       JOIN users u ON fr.from_user = u.userid
-       WHERE fr.to_user = $1 AND fr.status = 'pending'`,
-      [userid]
-    );
-    return result.rows;
-  },
-
-  getSentRequestsForUser: async (userid) => {
-    const result = await pool.query(
-      `SELECT fr.to_user, u.avatar
-       FROM friend_requests fr
-       JOIN users u ON fr.to_user = u.userid
-       WHERE fr.from_user = $1 AND fr.status = 'pending'`,
-      [userid]
-    );
-    return result.rows;
-  },
+  }
 };
