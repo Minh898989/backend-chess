@@ -7,7 +7,7 @@ module.exports = {
       const users = await friendModel.searchUsers(userid);
       res.json(users);
     } catch (err) {
-      res.status(500).json({ error: "Lỗi khi tìm người dùng" });
+      res.status(500).json({ error: "Lỗi khi tìm kiếm người dùng" });
     }
   },
 
@@ -22,7 +22,7 @@ module.exports = {
         return res.status(400).json({ error: "Đã tồn tại lời mời hoặc đã là bạn bè" });
 
       await friendModel.createRequest(sender_id, receiver_id);
-      res.json({ message: "Đã gửi lời mời kết bạn" });
+      res.json({ message: "Đã gửi lời mời kết bạn thành công" });
     } catch (err) {
       res.status(500).json({ error: "Lỗi khi gửi lời mời kết bạn" });
     }
@@ -40,9 +40,9 @@ module.exports = {
       if (updated === 0)
         return res.status(400).json({ error: "Không tìm thấy lời mời phù hợp" });
 
-      res.json({ message: `Đã ${action === "accept" ? "chấp nhận" : "từ chối"} lời mời` });
+      res.json({ message: `Đã ${action === "accept" ? "chấp nhận" : "từ chối"} lời mời kết bạn thành công` });
     } catch (err) {
-      res.status(500).json({ error: "Lỗi khi phản hồi lời mời" });
+      res.status(500).json({ error: "Lỗi khi phản hồi lời mời kết bạn" });
     }
   },
 
@@ -56,16 +56,16 @@ module.exports = {
       res.status(500).json({ error: "Lỗi khi lấy danh sách bạn bè" });
     }
   },
-  getPendingRequests: async (req, res) => {
-  const { userId } = req.params;
-  try {
-    const requests = await friendModel.getPendingRequests(userId);
-    res.json(requests);
-  } catch (err) {
-    console.error("Lỗi khi lấy lời mời:", err);
-    res.status(500).json({ error: "Lỗi khi lấy lời mời" });
-  }
-}
 
-  
+  getPendingRequests: async (req, res) => {
+    const { userId } = req.params;
+    try {
+      const requests = await friendModel.getPendingRequests(userId);
+      console.log('Danh sách lời mời kết bạn cho người dùng', userId, ':', requests);
+      res.json(requests);
+    } catch (err) {
+      console.error("Lỗi khi lấy danh sách lời mời:", err);
+      res.status(500).json({ error: "Lỗi khi lấy danh sách lời mời kết bạn" });
+    }
+  }
 };

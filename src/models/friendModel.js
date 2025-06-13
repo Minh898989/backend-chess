@@ -25,17 +25,33 @@ module.exports = {
   },
 
   respondRequest: async (senderId, receiverId, status) => {
-    const result = await pool.query(
-      "UPDATE friend_requests SET status=$1 WHERE sender_id=$2 AND receiver_id=$3 AND status='pending'",
-      [status, senderId, receiverId]
-    );
-    return result.rowCount;
+    if (status === "accepted") {
+      const result = await pool.query(
+        `UPDATE friend_requests 
+         SET status = $1, accepted_at = NOW() 
+         WHERE sender_id = $2 AND receiver_id = $3 AND status = 'pending'`,
+        [status, senderId, receiverId]
+      );
+      return result.rowCount;
+    } else {
+      const result = await pool.query(
+        `UPDATE friend_requests 
+         SET status = $1 
+         WHERE sender_id = $2 AND receiver_id = $3 AND status = 'pending'`,
+        [status, senderId, receiverId]
+      );
+      return result.rowCount;
+    }
   },
 
   getFriends: async (userId) => {
     const result = await pool.query(
       `
-      SELECT u.userid, u.avatar
+      SELECT 
+        u.userid, 
+        u.avatar, 
+        fr.accepted_at,
+        DATE_PART('day', NOW() - fr.accepted_at) AS days_friends
       FROM users u
       JOIN friend_requests fr
         ON (
@@ -43,25 +59,23 @@ module.exports = {
           OR
           (fr.receiver_id = $1 AND fr.sender_id = u.userid)
         )
-      WHERE fr.status = 'accepted'
+      WHERE fr.status = 'accepted' AND fr.accepted_at IS NOT NULL
       `,
       [userId]
     );
     return result.rows;
   },
-   getPendingRequests: async (userId) => {
-      const result = await pool.query(
-          `
-    SELECT fr.sender_id AS userid, u.avatar
-    FROM friend_requests fr
-    JOIN users u ON u.userid = fr.sender_id
-    WHERE fr.receiver_id = $1 AND fr.status = 'pending'
-    `,
-          [userId]
-      );
-      return result.rows;
+
+  getPendingRequests: async (userId) => {
+    const result = await pool.query(
+      `
+      SELECT fr.sender_id AS userid, u.avatar
+      FROM friend_requests fr
+      JOIN users u ON u.userid = fr.sender_id
+      WHERE fr.receiver_id = $1 AND fr.status = 'pending'
+      `,
+      [userId]
+    );
+    return result.rows;
   }
-
-
-  
 };
